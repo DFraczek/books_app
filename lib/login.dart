@@ -11,6 +11,7 @@ class Login extends StatefulWidget {
 
 class _LoginState extends State<Login> {
   bool _isErrorVisible = false;
+  bool _isLoading = false; // New state variable
   String _errorMessage = '';
 
   final TextEditingController _usernameController = TextEditingController();
@@ -19,6 +20,7 @@ class _LoginState extends State<Login> {
   Future<void> _handleLoginButtonPress() async {
     setState(() {
       _isErrorVisible = false;
+      _isLoading = true; // Set loading state to true
     });
 
     String username = _usernameController.text;
@@ -28,6 +30,7 @@ class _LoginState extends State<Login> {
       setState(() {
         _errorMessage = "Pola nie mogą być puste";
         _isErrorVisible = true;
+        _isLoading = false; // Set loading state to false
       });
       return;
     }
@@ -43,6 +46,7 @@ class _LoginState extends State<Login> {
         setState(() {
           _errorMessage = "Użytkownik o podanej nazwie użytkownika nie istnieje";
           _isErrorVisible = true;
+          _isLoading = false; // Set loading state to false
         });
         return;
       }
@@ -56,6 +60,7 @@ class _LoginState extends State<Login> {
         setState(() {
           _errorMessage = "Niepoprawne hasło";
           _isErrorVisible = true;
+          _isLoading = false; // Set loading state to false
         });
       }
 
@@ -63,6 +68,7 @@ class _LoginState extends State<Login> {
       setState(() {
         _errorMessage = "Wystąpił błąd: $e";
         _isErrorVisible = true;
+        _isLoading = false; // Set loading state to false
       });
     }
   }
@@ -214,8 +220,20 @@ class _LoginState extends State<Login> {
                 child: Text(
                   _errorMessage,
                   style: TextStyle(
-                    color: Colors.red,
+                    color: _errorMessage == "Konto zostało utworzone" ? Colors.green : Colors.red,
                   ),
+                ),
+              ),
+            ),
+          //------------------------------------------------- loading indicator
+          if (_isLoading)
+            const Positioned(
+              left: 0,
+              right: 0,
+              top: 550,
+              child: Center(
+                child: CircularProgressIndicator(
+                  valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF3C729E)),
                 ),
               ),
             ),

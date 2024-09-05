@@ -10,10 +10,10 @@ class Register extends StatefulWidget {
 }
 
 class _RegisterState extends State<Register> {
-
   bool _isErrorVisible = false;
-  String _errorMessage = '';
   bool _isSuccessVisible = false;
+  bool _isLoading = false; // New state variable
+  String _errorMessage = '';
 
   // Kontrolery tekstowe dla pól tekstowych
   final TextEditingController _emailController = TextEditingController();
@@ -28,11 +28,10 @@ class _RegisterState extends State<Register> {
     return emailRegex.hasMatch(email);
   }
 
-  //Validate username
-  bool _isValidUsername(String username){
+  // Validate username
+  bool _isValidUsername(String username) {
     final RegExp usernameRegex = RegExp(r'^[a-zA-Z0-9]{3,20}$');
     return usernameRegex.hasMatch(username);
-
   }
 
   // Validate data
@@ -41,7 +40,6 @@ class _RegisterState extends State<Register> {
     String username = _usernameController.text;
     String password = _passwordController.text;
     String password2 = _repetPasswordController.text;
-
 
     if (username.isEmpty || password.isEmpty || email.isEmpty || password2.isEmpty) {
       _errorMessage = "Pola nie mogą być puste";
@@ -67,6 +65,7 @@ class _RegisterState extends State<Register> {
     setState(() {
       _isErrorVisible = false;
       _isSuccessVisible = false;
+      _isLoading = true; // Set loading state to true
     });
 
     if (_isValidData()) {
@@ -112,21 +111,23 @@ class _RegisterState extends State<Register> {
           _isSuccessVisible = true;
         });
 
-
       } catch (e) {
         setState(() {
           _errorMessage = "Wystąpił błąd: $e";
           _isErrorVisible = true;
         });
+      } finally {
+        setState(() {
+          _isLoading = false; // Set loading state to false
+        });
       }
     } else {
       setState(() {
         _isErrorVisible = true;
+        _isLoading = false; // Set loading state to false
       });
     }
   }
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -178,8 +179,8 @@ class _RegisterState extends State<Register> {
               ),
             ),
           ),
-          //-------------------------------------------------  inputs
-          Positioned( //email input
+          //------------------------------------------------- inputs
+          Positioned( // email input
             left: 0,
             right: 0,
             top: 306,
@@ -187,7 +188,7 @@ class _RegisterState extends State<Register> {
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20.0),
                 child: Material(
-                  elevation: 4, // Cień
+                  elevation: 4, // shadow
                   borderRadius: BorderRadius.circular(10),
                   color: Colors.white,
                   child: TextField(
@@ -206,7 +207,7 @@ class _RegisterState extends State<Register> {
               ),
             ),
           ),
-          Positioned( //username input
+          Positioned( // username input
             left: 0,
             right: 0,
             top: 377,
@@ -214,7 +215,7 @@ class _RegisterState extends State<Register> {
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20.0),
                 child: Material(
-                  elevation: 4, //shadow
+                  elevation: 4, // shadow
                   borderRadius: BorderRadius.circular(10),
                   color: Colors.white,
                   child: TextField(
@@ -233,7 +234,7 @@ class _RegisterState extends State<Register> {
               ),
             ),
           ),
-          Positioned( //passwd input
+          Positioned( // password input
             left: 0,
             right: 0,
             top: 448,
@@ -261,7 +262,7 @@ class _RegisterState extends State<Register> {
               ),
             ),
           ),
-          Positioned( //repeatPasswd input
+          Positioned( // repeat password input
             left: 0,
             right: 0,
             top: 519,
@@ -320,7 +321,7 @@ class _RegisterState extends State<Register> {
               ),
             ),
           ),
-          //------------------------------------------------- register errors||successs
+          //------------------------------------------------- register errors||success
           if (_isErrorVisible || _isSuccessVisible)
             Positioned(
               left: 0,
@@ -345,7 +346,7 @@ class _RegisterState extends State<Register> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   const Text(
-                    'Masz juz konto?',
+                    'Masz już konto?',
                     style: TextStyle(
                       color: Color(0xFF949494),
                       fontSize: 16,
@@ -374,6 +375,18 @@ class _RegisterState extends State<Register> {
               ),
             ),
           ),
+          //------------------------------------------------- loading indicator
+          if (_isLoading)
+            const Positioned(
+              left: 0,
+              right: 0,
+              top: 672,
+              child: Center(
+                child: CircularProgressIndicator(
+                  valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF3C729E)),
+                ),
+              ),
+            ),
         ],
       ),
     );
