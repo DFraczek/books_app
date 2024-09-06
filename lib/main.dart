@@ -20,6 +20,7 @@ void main() async {
       '/login': (context) => const Login(),
       '/register': (context) => const Register(),
       '/main_page': (context) => const MainPage(),
+
     },
   ));
 }
