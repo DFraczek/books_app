@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:bcrypt/bcrypt.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+
 
 class Login extends StatefulWidget {
   const Login({super.key});
@@ -53,8 +56,12 @@ class _LoginState extends State<Login> {
 
       final userDoc = userQuery.docs.first;
       final userData = userDoc.data();
+      final hashedPassword = userData['password'];
 
-      if (userData['password'] == password) {
+      if (BCrypt.checkpw(password, hashedPassword)) {
+        final storage = FlutterSecureStorage();
+        await storage.write(key: 'user_id', value: userDoc.id); //store the user id in secure storage
+
         Navigator.pushNamed(context, '/main_page');
       } else {
         setState(() {
@@ -79,7 +86,7 @@ class _LoginState extends State<Login> {
 
     return Scaffold(
       backgroundColor: const Color(0xFFF9F1E5),
-      resizeToAvoidBottomInset: true,
+      resizeToAvoidBottomInset: false,
       body: Stack(
         children: [
           BackgroundOvals(),
@@ -120,14 +127,17 @@ class _LoginState extends State<Login> {
                       valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF3C729E)),
                     ),
                   ),
-                SizedBox(height: isPortrait ? 170 : 100), // Space before RegistrationPrompt
-                Positioned(
-                  child: RegistrationPrompt(),
-                ),
+                SizedBox(height: isPortrait ? 170 : 100),
               ],
             ),
-          ),
 
+          ),
+          Positioned(
+            bottom: 20,
+            left: 0,
+            right: 0,
+            child: RegistrationPrompt(),
+          ),
         ],
       ),
     );

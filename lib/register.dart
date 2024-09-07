@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:bcrypt/bcrypt.dart';
 
 class Register extends StatefulWidget {
   const Register({super.key});
@@ -18,8 +19,7 @@ class _RegisterState extends State<Register> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _repetPasswordController =
-  TextEditingController();
+  final TextEditingController _repetPasswordController = TextEditingController();
 
   bool _isValidEmail(String email) {
     final RegExp emailRegex =
@@ -77,8 +77,7 @@ class _RegisterState extends State<Register> {
       try {
         final db = FirebaseFirestore.instance;
 
-        final emailQuery =
-        await db.collection('user').where('email', isEqualTo: email).get();
+        final emailQuery = await db.collection('user').where('email', isEqualTo: email).get();
         if (emailQuery.docs.isNotEmpty) {
           setState(() {
             _errorMessage = "Adres e-mail jest już zarejestrowany";
@@ -87,10 +86,7 @@ class _RegisterState extends State<Register> {
           return;
         }
 
-        final usernameQuery = await db
-            .collection('user')
-            .where('username', isEqualTo: username)
-            .get();
+        final usernameQuery = await db.collection('user').where('username', isEqualTo: username).get();
         if (usernameQuery.docs.isNotEmpty) {
           setState(() {
             _errorMessage = "Nazwa użytkownika jest już zajęta";
@@ -99,13 +95,30 @@ class _RegisterState extends State<Register> {
           return;
         }
 
-        await db.collection('user').add({
+        // Hash paswd
+        String hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt());
+
+        // Create default shelves
+        List<String> shelfIds = [];
+        final shelves = [
+          {'name': 'Przeczytane', 'books': []},
+          {'name': 'Właśnie czytam', 'books': []},
+          {'name': 'Chcę przeczytać', 'books': []}
+        ];
+
+        for (var shelf in shelves) {
+          DocumentReference shelfRef = await db.collection('shelf').add(shelf);
+          shelfIds.add(shelfRef.id);
+        }
+
+        DocumentReference userRef = await db.collection('user').add({
           'email': email,
           'followed': 0,
-          'password': password,
+          'password': hashedPassword,
           'registrationDate': Timestamp.now(),
           'role': 'user',
           'username': username,
+          'bookshelves': shelfIds,
         });
 
         setState(() {
@@ -129,6 +142,7 @@ class _RegisterState extends State<Register> {
       });
     }
   }
+
 
   @override
   Widget build(BuildContext context) {
