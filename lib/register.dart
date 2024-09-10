@@ -101,9 +101,9 @@ class _RegisterState extends State<Register> {
         // Create default shelves
         List<String> shelfIds = [];
         final shelves = [
-          {'name': 'Przeczytane', 'books': []},
-          {'name': 'Właśnie czytam', 'books': []},
-          {'name': 'Chcę przeczytać', 'books': []}
+          {'name': 'Przeczytane', 'books': [], 'visibility': 'public'},
+          {'name': 'Właśnie czytam', 'books': [], 'visibility': 'public'},
+          {'name': 'Chcę przeczytać', 'books': [], 'visibility': 'public'}
         ];
 
         for (var shelf in shelves) {

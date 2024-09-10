@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'shelf.dart';
 
 class Library extends StatefulWidget {
   @override
@@ -142,6 +143,7 @@ class _LibraryState extends State<Library> {
                     await newShelfRef.set({
                       'name': newShelfName,
                       'books': [],
+                      'visibility': 'public',
                     });
 
                     await FirebaseFirestore.instance.collection('user').doc(userId).update({
@@ -194,176 +196,189 @@ class _LibraryState extends State<Library> {
         child: _isLoading
             ? CircularProgressIndicator()
             : SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    ..._shelves.map((shelf) {
-                      final shelfData = shelf.data() as Map<String, dynamic>;
-                      return Container(
-                        width: containerWidth,
-                        height: 85,
-                        margin: EdgeInsets.symmetric(vertical: 10),
-                        child: Stack(
-                          children: [
-                            Positioned(
-                              left: 0,
-                              top: 0,
-                              child: Container(
-                                width: containerWidth,
-                                height: 85,
-                                decoration: ShapeDecoration(
-                                  color: Colors.white,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                  shadows: [
-                                    BoxShadow(
-                                      color: Color(0x3F000000),
-                                      blurRadius: 4,
-                                      offset: Offset(0, 4),
-                                      spreadRadius: 0,
-                                    ),
-                                  ],
-                                ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              ..._shelves.map((shelf) {
+                final shelfData = shelf.data() as Map<String, dynamic>;
+                return GestureDetector(
+                  onTap: () async {
+                    final result = await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => Shelf(shelfId: shelf.id),
+                      ),
+                    );
+                    if(result == true) {
+                      _loadShelves();
+                    }
+                  },
+                  child: Container(
+                    width: containerWidth,
+                    height: 85,
+                    margin: EdgeInsets.symmetric(vertical: 10),
+                    child: Stack(
+                      children: [
+                        Positioned(
+                          left: 0,
+                          top: 0,
+                          child: Container(
+                            width: containerWidth,
+                            height: 85,
+                            decoration: ShapeDecoration(
+                              color: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
                               ),
-                            ),
-                            Positioned(
-                              left: 32,
-                              top: 10,
-                              child: Container(
-                                width: containerWidth - 64,
-                                height: 64,
-                                child: Stack(
-                                  children: [
-                                    Positioned(
-                                      left: 74,
-                                      top: 12,
-                                      child: SizedBox(
-                                        width: containerWidth - 148,
-                                        height: 33,
-                                        child: Text(
-                                          shelfData['name'] ?? 'N/A',
-                                          style: TextStyle(
-                                            color: Colors.black,
-                                            fontSize: 20,
-                                            fontFamily: 'Inter',
-                                            fontWeight: FontWeight.w600,
-                                            height: 0,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                    Positioned(
-                                      left: 74,
-                                      top: 37,
-                                      child: SizedBox(
-                                        width: 81,
-                                        height: 21,
-                                        child: Text(
-                                          '${(shelfData['books'] as List<dynamic>).length ?? 0} książek',
-                                          style: TextStyle(
-                                            color: Color(0xFF949494),
-                                            fontSize: 10,
-                                            fontFamily: 'Inter',
-                                            fontWeight: FontWeight.w600,
-                                            height: 0,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                    Positioned(
-                                      left: 0,
-                                      top: 0,
-                                      child: Container(
-                                        width: 46,
-                                        height: 64,
-                                        child: Center(
-                                          child: FaIcon(
-                                            FontAwesomeIcons.book,
-                                            size: 50,
-                                            color: Color(0xFF3C729E),
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ],
+                              shadows: [
+                                BoxShadow(
+                                  color: Color(0x3F000000),
+                                  blurRadius: 4,
+                                  offset: Offset(0, 4),
+                                  spreadRadius: 0,
                                 ),
-                              ),
+                              ],
                             ),
-                          ],
+                          ),
                         ),
-                      );
-                    }).toList(),
-                    SizedBox(height: 10),
-                    GestureDetector(
-                      onTap: _showAddShelfDialog,
-                      child: Container(
-                        width: containerWidth,
-                        height: 85,
-                        child: Stack(
-                          children: [
-                            Positioned(
-                              left: 0,
-                              top: 0,
-                              child: Container(
-                                width: containerWidth,
-                                height: 85,
-                                decoration: ShapeDecoration(
-                                  color: Colors.white,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                  shadows: [
-                                    BoxShadow(
-                                      color: Color(0x3F000000),
-                                      blurRadius: 4,
-                                      offset: Offset(0, 4),
-                                      spreadRadius: 0,
+                        Positioned(
+                          left: 32,
+                          top: 10,
+                          child: Container(
+                            width: containerWidth - 64,
+                            height: 64,
+                            child: Stack(
+                              children: [
+                                Positioned(
+                                  left: 74,
+                                  top: 12,
+                                  child: SizedBox(
+                                    width: containerWidth - 148,
+                                    height: 33,
+                                    child: Text(
+                                      shelfData['name'] ?? 'N/A',
+                                      style: TextStyle(
+                                        color: Colors.black,
+                                        fontSize: 20,
+                                        fontFamily: 'Inter',
+                                        fontWeight: FontWeight.w600,
+                                        height: 0,
+                                      ),
                                     ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                            Positioned(
-                              left: 30,
-                              top: 10,
-                              child: Container(
-                                width: 46,
-                                height: 64,
-                                child: Center(
-                                  child: FaIcon(
-                                    FontAwesomeIcons.plus,
-                                    size: 50,
-                                    color: Color(0xFF3C729E),
                                   ),
                                 ),
-                              ),
-                            ),
-                            Positioned(
-                              left: 106,
-                              top: 31,
-                              child: SizedBox(
-                                width: containerWidth - 136,
-                                height: 33,
-                                child: Text(
-                                  'Dodaj nową półkę',
-                                  style: TextStyle(
-                                    color: Colors.black,
-                                    fontSize: 20,
-                                    fontFamily: 'Inter',
-                                    fontWeight: FontWeight.w600,
-                                    height: 0,
+                                Positioned(
+                                  left: 74,
+                                  top: 37,
+                                  child: SizedBox(
+                                    width: 81,
+                                    height: 21,
+                                    child: Text(
+                                      '${(shelfData['books'] as List<dynamic>).length} książek',
+                                      style: TextStyle(
+                                        color: Color(0xFF949494),
+                                        fontSize: 10,
+                                        fontFamily: 'Inter',
+                                        fontWeight: FontWeight.w600,
+                                        height: 0,
+                                      ),
+                                    ),
                                   ),
                                 ),
-                              ),
+                                Positioned(
+                                  left: 0,
+                                  top: 0,
+                                  child: Container(
+                                    width: 46,
+                                    height: 64,
+                                    child: Center(
+                                      child: FaIcon(
+                                        FontAwesomeIcons.book,
+                                        size: 50,
+                                        color: Color(0xFF3C729E),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
-                          ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }).toList(),
+              SizedBox(height: 10),
+              GestureDetector(
+                onTap: _showAddShelfDialog,
+                child: Container(
+                  width: containerWidth,
+                  height: 85,
+                  child: Stack(
+                    children: [
+                      Positioned(
+                        left: 0,
+                        top: 0,
+                        child: Container(
+                          width: containerWidth,
+                          height: 85,
+                          decoration: ShapeDecoration(
+                            color: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            shadows: [
+                              BoxShadow(
+                                color: Color(0x3F000000),
+                                blurRadius: 4,
+                                offset: Offset(0, 4),
+                                spreadRadius: 0,
+                              ),
+                            ],
+                          ),
                         ),
                       ),
-                    ),
-                  ],
+                      Positioned(
+                        left: 30,
+                        top: 10,
+                        child: Container(
+                          width: 46,
+                          height: 64,
+                          child: Center(
+                            child: FaIcon(
+                              FontAwesomeIcons.plus,
+                              size: 50,
+                              color: Color(0xFF3C729E),
+                            ),
+                          ),
+                        ),
+                      ),
+                      Positioned(
+                        left: 106,
+                        top: 31,
+                        child: SizedBox(
+                          width: containerWidth - 136,
+                          height: 33,
+                          child: Text(
+                            'Dodaj nową półkę',
+                            style: TextStyle(
+                              color: Colors.black,
+                              fontSize: 20,
+                              fontFamily: 'Inter',
+                              fontWeight: FontWeight.w600,
+                              height: 0,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
+            ],
+          ),
+        ),
       ),
     );
   }
