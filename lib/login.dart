@@ -62,6 +62,7 @@ class _LoginState extends State<Login> {
         final storage = FlutterSecureStorage();
         await storage.write(key: 'user_id', value: userDoc.id); //store the user id in secure storage
 
+
         Navigator.pushNamed(context, '/main_page');
       } else {
         setState(() {

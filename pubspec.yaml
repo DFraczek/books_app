@@ -36,6 +36,7 @@ dependencies:
   cloud_firestore: ^5.4.0
   bcrypt: ^1.1.3
   flutter_secure_storage: 9.2.2
+  flutter_colorpicker: ^1.1.0
 
 dev_dependencies:
   flutter_test:

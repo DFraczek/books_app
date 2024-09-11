@@ -1,7 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'icon_map.dart';
 
 class Shelf extends StatefulWidget {
   final String shelfId;
@@ -140,6 +142,21 @@ class _ShelfState extends State<Shelf> {
     }
   }
 
+  Future<void> _updateShelfIcon(String shelfId, String icon, Color color) async {
+    try {
+      final shelfRef =
+      FirebaseFirestore.instance.collection('shelf').doc(shelfId);
+
+      await shelfRef.update({
+        'icon': [{'color': '0x${color.value.toRadixString(16).toUpperCase()}', 'name': icon}],
+      });
+
+      print("Shelf icon updated successfully");
+    } catch (e) {
+      print("Error updating shelf icon: $e");
+    }
+  }
+
   void _showRenameShelfDialog() {
     TextEditingController _controller = TextEditingController(text: _shelfName);
     String errorMessage = '';
@@ -149,111 +166,133 @@ class _ShelfState extends State<Shelf> {
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setState) {
-            return AlertDialog(
-              backgroundColor: const Color(0xFFF9F1E5),
-              title: Text('Zmień nazwę półki'),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  TextField(
-                    autofocus: true,
-                    controller: _controller,
-                    decoration: InputDecoration(
-                      hintText: 'Wpisz nazwę półki',
-                      errorText: errorMessage.isNotEmpty ? errorMessage : null,
+            return LayoutBuilder(
+              builder: (context, constraints) {
+                // Calculate available height minus padding for keyboard
+                double availableHeight = constraints.maxHeight;
+                double keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
+                double dialogHeight = availableHeight - keyboardHeight;
+
+                return AlertDialog(
+                  backgroundColor: const Color(0xFFF9F1E5),
+                  title: Text('Zmień nazwę półki'),
+                  contentPadding: EdgeInsets.all(16),
+                  content: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      maxHeight: dialogHeight * 0.6, // Adjust height ratio as needed
+                    ),
+                    child: SingleChildScrollView(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          TextField(
+                            autofocus: true,
+                            controller: _controller,
+                            decoration: InputDecoration(
+                              hintText: 'Wpisz nazwę półki',
+                              errorText: errorMessage.isNotEmpty ? errorMessage : null,
+                            ),
+                          ),
+                          SizedBox(height: 8),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              TextButton(
+                                onPressed: () async {
+                                  final newShelfName = _controller.text;
+
+                                  if (newShelfName.isEmpty) {
+                                    setState(() {
+                                      errorMessage = 'Nazwa nie może być pusta.';
+                                    });
+                                    return;
+                                  }
+
+                                  if (!RegExp(r'^[a-zA-Z]+$').hasMatch(newShelfName)) {
+                                    setState(() {
+                                      errorMessage = 'Nazwa może składać się tylko z liter.';
+                                    });
+                                    return;
+                                  }
+
+                                  final storage = FlutterSecureStorage();
+                                  final userId = await storage.read(key: 'user_id');
+
+                                  if (userId == null) {
+                                    Navigator.of(context).pop();
+                                    return;
+                                  }
+
+                                  // Fetch all shelves first
+                                  final userDoc = await FirebaseFirestore.instance
+                                      .collection('user')
+                                      .doc(userId)
+                                      .get();
+                                  final bookshelvesIds =
+                                  List<String>.from(userDoc['bookshelves'] ?? []);
+
+                                  final shelvesQuery = await FirebaseFirestore.instance
+                                      .collection('shelf')
+                                      .where(FieldPath.documentId, whereIn: bookshelvesIds)
+                                      .get();
+                                  final existingShelves = shelvesQuery.docs;
+
+                                  bool isDuplicate = existingShelves.any((shelf) {
+                                    return (shelf.data() as Map<String, dynamic>)['name'] ==
+                                        newShelfName;
+                                  });
+
+                                  if (isDuplicate) {
+                                    setState(() {
+                                      errorMessage = 'Półka o tej nazwie już istnieje.';
+                                    });
+                                    return;
+                                  }
+
+                                  _updateShelfName(widget.shelfId, newShelfName);
+
+                                  Navigator.of(context).pop();
+                                  _loadBooks();
+                                },
+                                style: TextButton.styleFrom(
+                                  backgroundColor: Color(0xFF3C729E),
+                                  foregroundColor: Colors.white,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                ),
+                                child: Text('Zmień nazwę'),
+                              ),
+                              SizedBox(width: 8),
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.of(context).pop();
+                                },
+                                style: TextButton.styleFrom(
+                                  backgroundColor: Color(0xFF3C729E),
+                                  foregroundColor: Colors.white,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                ),
+                                child: Text('Anuluj'),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                  SizedBox(height: 8),
-                ],
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () async {
-                    final newShelfName = _controller.text;
-
-                    if (newShelfName.isEmpty) {
-                      setState(() {
-                        errorMessage = 'Nazwa nie może być pusta.';
-                      });
-                      return;
-                    }
-
-                    if (!RegExp(r'^[a-zA-Z]+$').hasMatch(newShelfName)) {
-                      setState(() {
-                        errorMessage = 'Nazwa może składać się tylko z liter.';
-                      });
-                      return;
-                    }
-
-                    final storage = FlutterSecureStorage();
-                    final userId = await storage.read(key: 'user_id');
-
-                    if (userId == null) {
-                      Navigator.of(context).pop();
-                      return;
-                    }
-
-                    // Fetch all shelves first
-                    final userDoc = await FirebaseFirestore.instance
-                        .collection('user')
-                        .doc(userId)
-                        .get();
-                    final bookshelvesIds =
-                        List<String>.from(userDoc['bookshelves'] ?? []);
-
-                    final shelvesQuery = await FirebaseFirestore.instance
-                        .collection('shelf')
-                        .where(FieldPath.documentId, whereIn: bookshelvesIds)
-                        .get();
-                    final existingShelves = shelvesQuery.docs;
-
-                    bool isDuplicate = existingShelves.any((shelf) {
-                      return (shelf.data() as Map<String, dynamic>)['name'] ==
-                          newShelfName;
-                    });
-
-                    if (isDuplicate) {
-                      setState(() {
-                        errorMessage = 'Półka o tej nazwie już istnieje.';
-                      });
-                      return;
-                    }
-
-                    _updateShelfName(widget.shelfId, newShelfName);
-
-                    Navigator.of(context).pop();
-                    _loadBooks();
-                  },
-                  style: TextButton.styleFrom(
-                    backgroundColor: Color(0xFF3C729E),
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  ),
-                  child: Text('Zmień nazwę'),
-                ),
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                  style: TextButton.styleFrom(
-                    backgroundColor: Color(0xFF3C729E),
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  ),
-                  child: Text('Anuluj'),
-                ),
-              ],
+                );
+              },
             );
           },
         );
       },
     );
   }
+
 
   Future<void> _deleteShelf(String shelfId) async {
     try {
@@ -338,7 +377,7 @@ class _ShelfState extends State<Shelf> {
       builder: (context) {
         return AlertDialog(
           backgroundColor: const Color(0xFFF9F1E5),
-          title: Text('Edytuj ustawienia prywatności'),
+          title: Text('Ustawienia widoczności'),
           content: ChangeVisibilityDialog(
             currentVisibility: currentVisibility,
             onSave: (String newVisibility) async {
@@ -359,6 +398,165 @@ class _ShelfState extends State<Shelf> {
       },
     );
   }
+
+  void _showChangeShelfIconDialog() async {
+    showDialog(
+      context: context,
+      builder: (context) {
+        String selectedIconId = 'BNY3UlRkOfWOKvjLgunJ'; // Default icon ID
+        Color selectedColor = Color(0xFF3C729E); // Default color
+
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              backgroundColor: const Color(0xFFF9F1E5),
+              title: Text(
+                'Zmień ikonę półki',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              content: SingleChildScrollView(
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    maxHeight: MediaQuery.of(context).size.height * 0.7,
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Icon selection
+                      FutureBuilder<QuerySnapshot>(
+                        future: FirebaseFirestore.instance
+                            .collection('shelfIcon')
+                            .get(),
+                        builder: (context, snapshot) {
+                          if (!snapshot.hasData) {
+                            return Center(child: CircularProgressIndicator());
+                          }
+                          final icons = snapshot.data!.docs;
+                          return DropdownButton<String>(
+                            value: selectedIconId,
+                            items: icons.map((icon) {
+                              final iconName = icon['name'];
+                              final iconData =
+                                  iconMap[iconName] ?? FontAwesomeIcons.book;
+                              return DropdownMenuItem<String>(
+                                value: icon.id,
+                                child: Row(
+                                  children: [
+                                    FaIcon(iconData),
+                                    SizedBox(width: 10),
+                                    Text(iconName),
+                                  ],
+                                ),
+                              );
+                            }).toList(),
+                            onChanged: (value) {
+                              setState(() {
+                                selectedIconId = value!;
+                              });
+                            },
+                            hint: Text('Wybierz ikonę'),
+                            dropdownColor: Color(0xFFF9F1E5),
+                          );
+                        },
+                      ),
+                      SizedBox(height: 16),
+                      // Color picker
+                      GestureDetector(
+                        onTap: () {
+                          showDialog(
+                            context: context,
+                            builder: (context) {
+                              return AlertDialog(
+                                backgroundColor: Color(0xFFF9F1E5),
+                                title: Text('Wybierz kolor'),
+                                content: SingleChildScrollView(
+                                  child: ColorPicker(
+                                    pickerColor: selectedColor,
+                                    onColorChanged: (color) {
+                                      setState(() {
+                                        selectedColor = color;
+                                      });
+                                    },
+                                  ),
+                                ),
+                                actions: [
+                                  TextButton(
+                                    child: Text(
+                                      'Gotowe',
+                                      style:
+                                      TextStyle(color: Color(0xFF3C729E)),
+                                    ),
+                                    onPressed: () {
+                                      Navigator.pop(context, true);
+                                    },
+                                  ),
+                                ],
+                              );
+                            },
+                          );
+                        },
+                        child: Container(
+                          height: 50,
+                          width: double.infinity,
+                          color: selectedColor,
+                          child: Center(
+                            child: Text(
+                              'Wybierz kolor półki',
+                              style: TextStyle(color: Colors.white),
+                            ),
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 16),
+                      // Buttons
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          TextButton(
+                            onPressed: () async {
+                              _updateShelfIcon(widget.shelfId, selectedIconId, selectedColor);
+                              Navigator.pop(context, true);
+                            },
+                            style: TextButton.styleFrom(
+                              backgroundColor: Color(0xFF3C729E),
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            ),
+                            child: Text('Zapisz'),
+                          ),
+                          SizedBox(width: 10),
+                          TextButton(
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                            },
+                            style: TextButton.styleFrom(
+                              backgroundColor: Color(0xFF3C729E),
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            ),
+                            child: Text('Anuluj'),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
 
   AppBar _buildAppBar() {
     return AppBar(
@@ -404,9 +602,12 @@ class _ShelfState extends State<Shelf> {
                 _showRenameShelfDialog();
                 break;
               case 1:
-                _showChangeShelfVisibilityDialog();
+                _showChangeShelfIconDialog();
                 break;
               case 2:
+                _showChangeShelfVisibilityDialog();
+                break;
+              case 3:
                 _showRemoveShelfDialog();
                 break;
             }
@@ -427,6 +628,17 @@ class _ShelfState extends State<Shelf> {
               value: 1,
               child: Row(
                 children: [
+                  const FaIcon(FontAwesomeIcons.icons, color: Color(0xFF3C729E)),
+                  const SizedBox(width: 10),
+                  Text('Zmień ikonę'),
+                ],
+              ),
+            ),
+            PopupMenuDivider(),
+            PopupMenuItem<int>(
+              value: 2,
+              child: Row(
+                children: [
                   const FaIcon(FontAwesomeIcons.solidEye,
                       color: Color(0xFF3C729E)),
                   const SizedBox(width: 10),
@@ -436,7 +648,7 @@ class _ShelfState extends State<Shelf> {
             ),
             PopupMenuDivider(),
             PopupMenuItem<int>(
-              value: 2,
+              value: 3,
               child: Row(
                 children: [
                   const FaIcon(FontAwesomeIcons.trash,
@@ -492,23 +704,29 @@ class _ShelfState extends State<Shelf> {
               ),
             ),
           ),
-          Center(
+          Positioned(
+            top: 120,
+            left: 0,
+            right: 0,
+            bottom: 0,
             child: _isLoading
-                ? CircularProgressIndicator()
+                ? Center(child: CircularProgressIndicator())
                 : SingleChildScrollView(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        const SizedBox(height: 20),
-                        ..._books.map((book) => BookItem(book: book)).toList(),
-                      ],
-                    ),
-                  ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  const SizedBox(height: 20),
+                  ..._books.map((book) => BookItem(book: book)).toList(),
+                  const SizedBox(height: 20),
+                ],
+              ),
+            ),
           ),
         ],
       ),
     );
   }
+
 }
 
 class BookItem extends StatelessWidget {
@@ -681,11 +899,13 @@ class _ChangeVisibilityDialogState extends State<ChangeVisibilityDialog> {
   }
 
   @override
+  @override
   Widget build(BuildContext context) {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: <Widget>[
         ListTile(
+          contentPadding: EdgeInsets.zero, // Usunięcie domyślnych odstępów
           title: Row(
             children: [
               const FaIcon(
@@ -711,6 +931,7 @@ class _ChangeVisibilityDialogState extends State<ChangeVisibilityDialog> {
           ),
         ),
         ListTile(
+          contentPadding: EdgeInsets.zero, // Usunięcie domyślnych odstępów
           title: Row(
             children: [
               const FaIcon(FontAwesomeIcons.lock, color: Color(0xFF3C729E)),
@@ -772,4 +993,5 @@ class _ChangeVisibilityDialogState extends State<ChangeVisibilityDialog> {
       ],
     );
   }
+
 }

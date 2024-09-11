@@ -100,10 +100,12 @@ class _RegisterState extends State<Register> {
 
         // Create default shelves
         List<String> shelfIds = [];
+
+        //todo: tu na sztywno wpisałam id defaultowej ikony, wydaje mi sie że lepiej będzie to jakimś zapytaniem do db zrobić
         final shelves = [
-          {'name': 'Przeczytane', 'books': [], 'visibility': 'public'},
-          {'name': 'Właśnie czytam', 'books': [], 'visibility': 'public'},
-          {'name': 'Chcę przeczytać', 'books': [], 'visibility': 'public'}
+          {'name': 'Przeczytane', 'books': [], 'visibility': 'public', 'icon': [{'name': 'BNY3UlRkOfWOKvjLgunJ', 'color': '0xFF3C729E'}]},
+          {'name': 'Właśnie czytam', 'books': [], 'visibility': 'public', 'icon': [{'name': 'booBNY3UlRkOfWOKvjLgunJ', 'color': '0xFF3C729E'}]},
+          {'name': 'Chcę przeczytać', 'books': [], 'visibility': 'public', 'icon': [{'name': 'BNY3UlRkOfWOKvjLgunJ', 'color': '0xFF3C729E'}]}
         ];
 
         for (var shelf in shelves) {

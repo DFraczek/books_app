@@ -104,6 +104,12 @@
       "languageVersion": "3.3"
     },
     {
+      "name": "flutter_colorpicker",
+      "rootUri": "file:///C:/Users/fracz/AppData/Local/Pub/Cache/hosted/pub.dev/flutter_colorpicker-1.1.0",
+      "packageUri": "lib/",
+      "languageVersion": "2.14"
+    },
+    {
       "name": "flutter_lints",
       "rootUri": "file:///C:/Users/fracz/AppData/Local/Pub/Cache/hosted/pub.dev/flutter_lints-4.0.0",
       "packageUri": "lib/",
@@ -344,7 +350,7 @@
       "languageVersion": "3.5"
     }
   ],
-  "generated": "2024-09-07T11:04:05.211971Z",
+  "generated": "2024-09-11T10:25:03.810403Z",
   "generator": "pub",
   "generatorVersion": "3.5.1",
   "flutterRoot": "file:///C:/Users/fracz/AppData/Local/flutter",
