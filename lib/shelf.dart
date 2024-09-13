@@ -293,7 +293,6 @@ class _ShelfState extends State<Shelf> {
     );
   }
 
-
   Future<void> _deleteShelf(String shelfId) async {
     try {
       final storage = FlutterSecureStorage();
@@ -557,7 +556,6 @@ class _ShelfState extends State<Shelf> {
     );
   }
 
-
   AppBar _buildAppBar() {
     return AppBar(
       backgroundColor: const Color(0xFF2C5473),
@@ -573,10 +571,10 @@ class _ShelfState extends State<Shelf> {
           onSelected: (value) {
             switch (value) {
               case 0:
-                // Implement search action
+              // Implement search action
                 break;
               case 1:
-                // 2nd implementation
+              // 2nd implementation
                 break;
             }
           },
@@ -592,73 +590,100 @@ class _ShelfState extends State<Shelf> {
           ],
         ),
         //----------------------------------------------settings menu
-        PopupMenuButton<int>(
-          icon: const FaIcon(FontAwesomeIcons.sliders),
-          tooltip: 'Ustawienia',
-          color: Color(0xFFF9F1E5),
-          onSelected: (value) {
-            switch (value) {
-              case 0:
-                _showRenameShelfDialog();
-                break;
-              case 1:
-                _showChangeShelfIconDialog();
-                break;
-              case 2:
-                _showChangeShelfVisibilityDialog();
-                break;
-              case 3:
-                _showRemoveShelfDialog();
-                break;
+        FutureBuilder<DocumentSnapshot>(
+          future: _getShelfDocument(widget.shelfId),
+
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return CircularProgressIndicator();
             }
+
+            if (!snapshot.hasData || snapshot.data == null) {
+              return SizedBox(); // If there's an error or no data, display nothing
+            }
+
+            final shelfName = snapshot.data!['name'];
+
+            final isDefaultShelf = shelfName == "Chcę przeczytać" ||
+                shelfName == "Właśnie czytam" ||
+                shelfName == "Przeczytane";
+
+            return PopupMenuButton<int>(
+              icon: const FaIcon(FontAwesomeIcons.sliders),
+              tooltip: 'Ustawienia',
+              color: Color(0xFFF9F1E5),
+              onSelected: (value) {
+                switch (value) {
+                  case 0:
+                    _showChangeShelfIconDialog();
+                    break;
+                  case 1:
+                    _showChangeShelfVisibilityDialog();
+                    break;
+                  case 2:
+                    _showRenameShelfDialog();
+                    break;
+                  case 3:
+                    _showRemoveShelfDialog();
+                    break;
+                }
+              },
+              itemBuilder: (BuildContext context) {
+                List<PopupMenuEntry<int>> items = [
+                  PopupMenuItem<int>(
+                    value: 0,
+                    child: Row(
+                      children: [
+                        const FaIcon(FontAwesomeIcons.icons, color: Color(0xFF3C729E)),
+                        const SizedBox(width: 10),
+                        Text('Zmień ikonę'),
+                      ],
+                    ),
+                  ),
+                  PopupMenuDivider(),
+                  PopupMenuItem<int>(
+                    value: 1,
+                    child: Row(
+                      children: [
+                        const FaIcon(FontAwesomeIcons.solidEye, color: Color(0xFF3C729E)),
+                        const SizedBox(width: 10),
+                        Text('Ustawienia widoczności'),
+                      ],
+                    ),
+                  ),
+                ];
+
+                //defaultowe polki mają NIE mieć opcji zmiany nazwy i usunięcia
+                if (!isDefaultShelf) {
+                  items.addAll([
+                    PopupMenuDivider(),
+                    PopupMenuItem<int>(
+                      value: 2,
+                      child: Row(
+                        children: [
+                          const FaIcon(FontAwesomeIcons.pen, color: Color(0xFF3C729E)),
+                          const SizedBox(width: 10),
+                          Text('Zmień nazwę'),
+                        ],
+                      ),
+                    ),
+                    PopupMenuDivider(),
+                    PopupMenuItem<int>(
+                      value: 3,
+                      child: Row(
+                        children: [
+                          const FaIcon(FontAwesomeIcons.trash, color: Color(0xFF3C729E)),
+                          const SizedBox(width: 10),
+                          Text('Usuń półkę'),
+                        ],
+                      ),
+                    ),
+                  ]);
+                }
+                return items;
+              },
+            );
           },
-          itemBuilder: (BuildContext context) => [
-            PopupMenuItem<int>(
-              value: 0,
-              child: Row(
-                children: [
-                  const FaIcon(FontAwesomeIcons.pen, color: Color(0xFF3C729E)),
-                  const SizedBox(width: 10),
-                  Text('Zmień nazwę'),
-                ],
-              ),
-            ),
-            PopupMenuDivider(),
-            PopupMenuItem<int>(
-              value: 1,
-              child: Row(
-                children: [
-                  const FaIcon(FontAwesomeIcons.icons, color: Color(0xFF3C729E)),
-                  const SizedBox(width: 10),
-                  Text('Zmień ikonę'),
-                ],
-              ),
-            ),
-            PopupMenuDivider(),
-            PopupMenuItem<int>(
-              value: 2,
-              child: Row(
-                children: [
-                  const FaIcon(FontAwesomeIcons.solidEye,
-                      color: Color(0xFF3C729E)),
-                  const SizedBox(width: 10),
-                  Text('Ustawienia widoczności'),
-                ],
-              ),
-            ),
-            PopupMenuDivider(),
-            PopupMenuItem<int>(
-              value: 3,
-              child: Row(
-                children: [
-                  const FaIcon(FontAwesomeIcons.trash,
-                      color: Color(0xFF3C729E)),
-                  const SizedBox(width: 10),
-                  Text('Usuń półkę'),
-                ],
-              ),
-            ),
-          ],
         ),
       ],
     );
