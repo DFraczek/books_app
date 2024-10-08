@@ -3,6 +3,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'reccomendations.dart';
 import 'bottomNavBar.dart';
 import 'library.dart';
+import 'profile.dart';
 
 class MainPage extends StatefulWidget {
   const MainPage({super.key});
@@ -20,7 +21,7 @@ class _MainPageState extends State<MainPage> {
     Recommendations(),
     Library(),
     Center(child: Text('Stats Page')),
-    Center(child: Text('Profile Page')),
+    Profile(),
   ];
 
   void _onItemTapped(int index) {

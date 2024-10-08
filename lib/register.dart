@@ -115,12 +115,15 @@ class _RegisterState extends State<Register> {
 
         DocumentReference userRef = await db.collection('user').add({
           'email': email,
-          'followed': 0,
+          'followers': [],
+          'following': [],
           'password': hashedPassword,
           'registrationDate': Timestamp.now(),
           'role': 'user',
           'username': username,
           'bookshelves': shelfIds,
+          'profilePicture': 'assets/images/default_avatar.jpg',
+          'abouteMe': "",
         });
 
         setState(() {
