@@ -1,1 +1,0 @@
- C:\\Users\\fracz\\Pulpit\\Studia\\praca_inzynierska\\.dart_tool\\flutter_build\\af8e4a6e1a2fb26644a59f6cf7a57e2b\\native_assets.yaml: 
