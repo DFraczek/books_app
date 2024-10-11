@@ -76,6 +76,7 @@ class _ShelfState extends State<Shelf> {
 
     if (bookDoc.exists) {
       final bookTitle = bookDoc['title'];
+      final coverImage = bookDoc['coverImage'];
       final bookAuthorIds = List<String>.from(bookDoc['author']);
       List<String> authorNames = await _getAuthorNames(bookAuthorIds);
 
@@ -85,6 +86,7 @@ class _ShelfState extends State<Shelf> {
         'title': bookTitle,
         'author': authorNames,
         'rate': rate,
+        'coverImage': coverImage,
       };
     }
     return null;
@@ -796,7 +798,12 @@ class BookItem extends StatelessWidget {
                   height: 75,
                   color: Colors.grey[300],
                   alignment: Alignment.center,
-                  child: Icon(
+                  child: book['coverImage'] != null && book['coverImage'].isNotEmpty
+                      ? Image.network(
+                    book['coverImage'],
+                    fit: BoxFit.cover,
+                  )
+                      : Icon(
                     FontAwesomeIcons.book,
                     size: 30,
                     color: Colors.grey[700],
