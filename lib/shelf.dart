@@ -819,7 +819,7 @@ class BookItem extends StatelessWidget {
                         book['title'] ?? 'N/A',
                         style: TextStyle(
                           color: Colors.black,
-                          fontSize: 20,
+                          fontSize: (book['title'] != null && book['title'].length > 20) ? 14 : 20,
                           fontFamily: 'Inter',
                           fontWeight: FontWeight.w600,
                         ),
