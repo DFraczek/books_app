@@ -570,6 +570,12 @@ class _ProfileState extends State<Profile> {
                                   await user.updatePassword(
                                       newPasswordController.text);
                                   Navigator.of(context).pop();
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text('Hasło zostało zmienione.'),
+                                      backgroundColor: Colors.green,
+                                    ),
+                                  );
                                 } catch (e) {
                                   if (e is FirebaseAuthException) {
                                     if (e.code == 'invalid-credential') {
