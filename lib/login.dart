@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:bcrypt/bcrypt.dart';
+import 'package:firebase_auth/firebase_auth.dart'; // Import Firebase Auth
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-
 
 class Login extends StatefulWidget {
   const Login({super.key});
@@ -17,7 +15,7 @@ class _LoginState extends State<Login> {
   bool _isLoading = false;
   String _errorMessage = '';
 
-  final TextEditingController _usernameController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
   Future<void> _handleLoginButtonPress() async {
@@ -26,10 +24,10 @@ class _LoginState extends State<Login> {
       _isLoading = true;
     });
 
-    String username = _usernameController.text;
+    String email = _emailController.text;
     String password = _passwordController.text;
 
-    if (username.isEmpty || password.isEmpty) {
+    if (email.isEmpty || password.isEmpty) {
       setState(() {
         _errorMessage = "Pola nie mogą być puste";
         _isErrorVisible = true;
@@ -39,39 +37,30 @@ class _LoginState extends State<Login> {
     }
 
     try {
-      final db = FirebaseFirestore.instance;
+      UserCredential userCredential = await FirebaseAuth.instance
+          .signInWithEmailAndPassword(email: email, password: password);
 
-      final userQuery = await db.collection('user')
-          .where('username', isEqualTo: username)
-          .get();
-
-      if (userQuery.docs.isEmpty) {
-        setState(() {
-          _errorMessage = "Użytkownik o podanej nazwie użytkownika nie istnieje";
-          _isErrorVisible = true;
-          _isLoading = false;
-        });
-        return;
-      }
-
-      final userDoc = userQuery.docs.first;
-      final userData = userDoc.data();
-      final hashedPassword = userData['password'];
-
-      if (BCrypt.checkpw(password, hashedPassword)) {
+      // Get the user's unique ID from FirebaseAuth
+      final user = userCredential.user;
+      if (user != null) {
         final storage = FlutterSecureStorage();
-        await storage.write(key: 'user_id', value: userDoc.id); //store the user id in secure storage
-
+        await storage.write(key: 'user_id',
+            value: user.uid); // Store the user ID in secure storage
 
         Navigator.pushNamed(context, '/main_page');
-      } else {
-        setState(() {
-          _errorMessage = "Niepoprawne hasło";
-          _isErrorVisible = true;
-          _isLoading = false;
-        });
       }
-
+    } on FirebaseAuthException catch (e) {
+      setState(() {
+        if (e.code == 'user-not-found') {
+          _errorMessage = "Użytkownik o podanym adresie e-mail nie istnieje";
+        } else if (e.code == 'wrong-password') {
+          _errorMessage = "Niepoprawne hasło";
+        } else {
+          _errorMessage = "Wystąpił błąd. Spróbuj ponownie";
+        }
+        _isErrorVisible = true;
+        _isLoading = false;
+      });
     } catch (e) {
       setState(() {
         _errorMessage = "Wystąpił błąd: $e";
@@ -83,7 +72,9 @@ class _LoginState extends State<Login> {
 
   @override
   Widget build(BuildContext context) {
-    final isPortrait = MediaQuery.of(context).orientation == Orientation.portrait;
+    final isPortrait = MediaQuery
+        .of(context)
+        .orientation == Orientation.portrait;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF9F1E5),
@@ -91,54 +82,61 @@ class _LoginState extends State<Login> {
       body: Stack(
         children: [
           BackgroundOvals(),
-          SingleChildScrollView(
-            child: Column(
-              children: [
-                SizedBox(height: 150),
-                Center(
-                  child: Text(
-                    'Zaloguj się',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 50,
-                      fontFamily: 'Inter',
-                      fontWeight: FontWeight.w600,
-                      height: 1.2,
+          GestureDetector(
+            onTap: () {
+              // Schowaj klawiaturę po kliknięciu poza pole tekstowe
+              FocusScope.of(context).unfocus();
+            },
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  SizedBox(height: 150),
+                  Center(
+                    child: Text(
+                      'Zaloguj się',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 50,
+                        fontFamily: 'Inter',
+                        fontWeight: FontWeight.w600,
+                        height: 1.2,
+                      ),
                     ),
                   ),
-                ),
-                SizedBox(height: 100),
-                LoginForm(
-                  usernameController: _usernameController,
-                  passwordController: _passwordController,
-                ),
-                SizedBox(height: 40), // Space between form and button
-                LoginButton(onPressed: _handleLoginButtonPress),
-                if (_isErrorVisible)
-                  SizedBox(height: 20), // Space before the error message
-                if (_isErrorVisible)
-                  Center(
-                    child: ErrorMessage(message: _errorMessage),
+                  SizedBox(height: 100),
+                  LoginForm(
+                    emailController: _emailController,
+                    passwordController: _passwordController,
                   ),
-                if (_isLoading)
-                  SizedBox(height: 20), // Space before the loader
-                if (_isLoading)
-                  Center(
-                    child: CircularProgressIndicator(
-                      valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF3C729E)),
+                  SizedBox(height: 40),
+                  LoginButton(onPressed: _handleLoginButtonPress),
+                  if (_isErrorVisible)
+                    SizedBox(height: 20),
+                  if (_isErrorVisible)
+                    Center(
+                      child: ErrorMessage(message: _errorMessage),
                     ),
+                  if (_isLoading)
+                    SizedBox(height: 20),
+                  if (_isLoading)
+                    Center(
+                      child: CircularProgressIndicator(
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                            Color(0xFF3C729E)),
+                      ),
+                    ),
+                  SizedBox(height: isPortrait ? 170 : 100),
+                  Positioned(
+                    bottom: 20,
+                    left: 0,
+                    right: 0,
+                    child: RegistrationPrompt(),
                   ),
-                SizedBox(height: isPortrait ? 170 : 100),
-              ],
+                ],
+              ),
             ),
+          ),
 
-          ),
-          Positioned(
-            bottom: 20,
-            left: 0,
-            right: 0,
-            child: RegistrationPrompt(),
-          ),
         ],
       ),
     );
@@ -180,11 +178,11 @@ class BackgroundOvals extends StatelessWidget {
 }
 
 class LoginForm extends StatelessWidget {
-  final TextEditingController usernameController;
+  final TextEditingController emailController;
   final TextEditingController passwordController;
 
   const LoginForm({
-    required this.usernameController,
+    required this.emailController,
     required this.passwordController,
   });
 
@@ -200,9 +198,9 @@ class LoginForm extends StatelessWidget {
               borderRadius: BorderRadius.circular(10),
               color: Colors.white,
               child: TextField(
-                controller: usernameController,
+                controller: emailController,
                 decoration: InputDecoration(
-                  hintText: 'Nazwa użytkownika',
+                  hintText: 'Adres e-mail',
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
                     borderSide: BorderSide.none,

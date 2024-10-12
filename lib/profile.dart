@@ -6,6 +6,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'dart:io';
 import 'package:image_cropper/image_cropper.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class Profile extends StatefulWidget {
   @override
@@ -15,6 +16,7 @@ class Profile extends StatefulWidget {
 class _ProfileState extends State<Profile> {
   String? username;
   String? aboutMe;
+  String? email;
   String? profilePictureUrl;
   int? followersCount;
   int? followingCount;
@@ -30,6 +32,14 @@ class _ProfileState extends State<Profile> {
     _fetchFollowing();
   }
 
+  // Logout function
+  Future<void> _logout() async {
+    final storage = FlutterSecureStorage();
+    await storage.delete(key: 'user_id');
+    await FirebaseAuth.instance.signOut();
+    Navigator.of(context).pushReplacementNamed('/login');
+  }
+
   Future<void> _fetchUsername() async {
     final storage = FlutterSecureStorage();
     String? userId = await storage.read(key: 'user_id');
@@ -41,6 +51,7 @@ class _ProfileState extends State<Profile> {
           username = userDoc['username'];
           profilePictureUrl = userDoc['profilePicture'];
           aboutMe = userDoc['aboutMe'] ?? '';
+          email = userDoc['email'] ?? '';
         });
       }
     }
@@ -168,15 +179,123 @@ class _ProfileState extends State<Profile> {
     }
   }
 
+  Future<void> _changeEmail() async {
+    TextEditingController oldEmailController = TextEditingController();
+    TextEditingController newEmailController = TextEditingController();
 
+    // Show dialog to enter old and new email
+    String? newEmail = await showDialog<String>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: const Color(0xFFF9F1E5),
+          title: Text('Zmień adres e-mail'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: oldEmailController,
+                decoration: InputDecoration(hintText: "Wprowadź stary adres e-mail..."),
+                keyboardType: TextInputType.emailAddress,
+              ),
+              TextField(
+                controller: newEmailController,
+                decoration: InputDecoration(hintText: "Wprowadź nowy adres e-mail..."),
+                keyboardType: TextInputType.emailAddress,
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(newEmailController.text);
+              },
+              child: Text('Zapisz'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text('Anuluj'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (newEmail != null && newEmail.isNotEmpty) {
+      final storage = FlutterSecureStorage();
+      String? userId = await storage.read(key: 'user_id');
+
+      // Regex for validating email
+      final RegExp emailRegex = RegExp(
+        r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
+      );
+
+      if (!emailRegex.hasMatch(newEmail)) {
+        _showErrorDialog('Proszę wprowadzić prawidłowy adres e-mail.');
+        return;
+      }
+
+      // Check if the new email is unique
+      QuerySnapshot existingUsers = await FirebaseFirestore.instance
+          .collection('user')
+          .where('email', isEqualTo: newEmail)
+          .get();
+
+      if (existingUsers.docs.isNotEmpty) {
+        _showErrorDialog('Adres e-mail jest już zajęty.');
+        return;
+      }
+
+      // Check if the old email matches the one in Firestore
+      if (userId != null) {
+        DocumentSnapshot userDoc = await FirebaseFirestore.instance.collection('user').doc(userId).get();
+        String? oldEmail = userDoc['email'];
+
+        if (oldEmailController.text != oldEmail) {
+          _showErrorDialog('Wprowadzony stary adres e-mail jest nieprawidłowy.');
+          return;
+        }
+
+        // If everything is valid, update the email in Firestore
+        await FirebaseFirestore.instance.collection('user').doc(userId).update({'email': newEmail});
+
+      }
+    }
+  }
+
+  void _showErrorDialog(String message) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: const Color(0xFFF9F1E5),
+          title: Text('Błąd'),
+          content: Text(message),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final containerWidth = screenWidth * 0.88;
+
     return SingleChildScrollView(
       child: Column(
         children: [
           Container(
-            width: 350,
+            width: containerWidth,
             height: 350,
             decoration: BoxDecoration(
               color: Colors.white,
@@ -323,7 +442,7 @@ class _ProfileState extends State<Profile> {
                   child: Column(
                     children: [
                       Text(
-                        followersCount != null ? followersCount.toString() : 'Ładowanie...',
+                        followersCount != null ? followersCount.toString() : '',
                         style: TextStyle(
                           fontSize: 26,
                           color: Colors.black,
@@ -348,7 +467,7 @@ class _ProfileState extends State<Profile> {
                   child: Column(
                     children: [
                       Text(
-                        followingCount != null ? followingCount.toString() : 'Ładowanie...',
+                        followingCount != null ? followingCount.toString() : '',
                         style: TextStyle(
                           fontSize: 26,
                           color: Colors.black,
@@ -373,7 +492,7 @@ class _ProfileState extends State<Profile> {
           SizedBox(height: 16),
           // Zmień e-mail
           Container(
-            width: 350,
+            width: containerWidth,
             height: 50,
             decoration: BoxDecoration(
               color: Colors.white,
@@ -386,33 +505,47 @@ class _ProfileState extends State<Profile> {
                 ),
               ],
             ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(left: 20.0, right: 30.0),
-                  child: Icon(
-                    FontAwesomeIcons.at,
-                    color: Color(0xFF3C729E),
-                  ),
-                ),
-                Expanded(
-                  child: Text(
-                    'Zmień adres e-mail',
-                    textAlign: TextAlign.left,
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w400,
+            child: GestureDetector(
+              onTap: _changeEmail,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween, // Change to spaceBetween
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(left: 20.0),
+                    child: Icon(
+                      FontAwesomeIcons.at,
+                      color: Color(0xFF3C729E),
                     ),
                   ),
-                ),
-              ],
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 30.0),
+                      child: Text(
+                        email ?? 'Błąd przy pobieraniu adresu email',
+                        textAlign: TextAlign.left,
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w400,
+                        ),
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(right: 20.0),
+                    child: Icon(
+                      FontAwesomeIcons.pen,
+                      color: Colors.grey,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
+
           SizedBox(height: 16),
           // Zmień hasło
           Container(
-            width: 350,
+            width: containerWidth,
             height: 50,
             decoration: BoxDecoration(
               color: Colors.white,
@@ -448,6 +581,31 @@ class _ProfileState extends State<Profile> {
               ],
             ),
           ),
+          SizedBox(height: 16),
+          //logout
+          ElevatedButton(
+            onPressed: _logout,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Color(0xFF3C729E),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+              elevation: 5,
+            ),
+            child: Container(
+              width: containerWidth,
+              height: 50,
+              alignment: Alignment.center,
+              child: Text(
+                'Wyloguj',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                ),
+              ),
+            ),
+          ),
+
         ],
       ),
     );

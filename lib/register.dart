@@ -1,7 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:bcrypt/bcrypt.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'widgets/background_ovals.dart';
 
 class Register extends StatefulWidget {
   const Register({super.key});
@@ -76,7 +77,9 @@ class _RegisterState extends State<Register> {
 
       try {
         final db = FirebaseFirestore.instance;
+        final auth = FirebaseAuth.instance;
 
+        // Check if email or username already exists in Firestore
         final emailQuery = await db.collection('user').where('email', isEqualTo: email).get();
         if (emailQuery.docs.isNotEmpty) {
           setState(() {
@@ -95,13 +98,14 @@ class _RegisterState extends State<Register> {
           return;
         }
 
-        // Hash paswd
-        String hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt());
+        // Register user with Firebase Authentication
+        UserCredential userCredential = await auth.createUserWithEmailAndPassword(
+          email: email,
+          password: password,
+        );
 
         // Create default shelves
         List<String> shelfIds = [];
-
-        //todo: tu na sztywno wpisałam id defaultowej ikony, wydaje mi sie że lepiej będzie to jakimś zapytaniem do db zrobić
         final shelves = [
           {'name': 'Przeczytane', 'books': [], 'visibility': 'public', 'icon': [{'name': 'BNY3UlRkOfWOKvjLgunJ', 'color': '0xFF3C729E'}]},
           {'name': 'Właśnie czytam', 'books': [], 'visibility': 'public', 'icon': [{'name': 'booBNY3UlRkOfWOKvjLgunJ', 'color': '0xFF3C729E'}]},
@@ -113,17 +117,17 @@ class _RegisterState extends State<Register> {
           shelfIds.add(shelfRef.id);
         }
 
-        DocumentReference userRef = await db.collection('user').add({
+        // Add additional user data to Firestore
+        await db.collection('user').doc(userCredential.user!.uid).set({
           'email': email,
           'followers': [],
           'following': [],
-          'password': hashedPassword,
           'registrationDate': Timestamp.now(),
           'role': 'user',
           'username': username,
           'bookshelves': shelfIds,
           'profilePicture': 'assets/images/default_avatar.jpg',
-          'abouteMe': "",
+          'aboutMe': "",
         });
 
         setState(() {
@@ -148,7 +152,6 @@ class _RegisterState extends State<Register> {
     }
   }
 
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -157,11 +160,16 @@ class _RegisterState extends State<Register> {
       body: Stack(
         children: [
           const BackgroundOvals(),
-          SingleChildScrollView(
+          GestureDetector(
+            onTap: () {
+              // Schowaj klawiaturę po kliknięciu poza pole tekstowe
+              FocusScope.of(context).unfocus();
+            },
+          child: SingleChildScrollView(
             child: Column(
               children: [
-                SizedBox(height: 150),
-                Center(
+                const SizedBox(height: 150),
+                const Center(
                   child: Text(
                     'Zarejestruj się',
                     style: TextStyle(
@@ -173,14 +181,14 @@ class _RegisterState extends State<Register> {
                     ),
                   ),
                 ),
-                SizedBox(height: 60),
-                RegisterInputs(
+                const SizedBox(height: 60),
+                RegisterForm(
                   emailController: _emailController,
                   usernameController: _usernameController,
                   passwordController: _passwordController,
-                  repetPasswordController: _repetPasswordController,
+                  password2Controller: _repetPasswordController,
                 ),
-                SizedBox(height: 20),
+                const SizedBox(height: 20),
                 Center(
                   child: SizedBox(
                     width: 186,
@@ -206,7 +214,7 @@ class _RegisterState extends State<Register> {
                     ),
                   ),
                 ),
-                if (_isErrorVisible || _isSuccessVisible) SizedBox(height: 20),
+                if (_isErrorVisible || _isSuccessVisible) const SizedBox(height: 20),
                 if (_isErrorVisible || _isSuccessVisible)
                   Center(
                     child: Text(
@@ -216,15 +224,14 @@ class _RegisterState extends State<Register> {
                       ),
                     ),
                   ),
-                if (_isLoading) SizedBox(height: 20),
+                if (_isLoading) const SizedBox(height: 20),
                 if (_isLoading)
-                  Center(
+                  const Center(
                     child: CircularProgressIndicator(
-                      valueColor:
-                      AlwaysStoppedAnimation<Color>(Color(0xFF3C729E)),
+                      valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF3C729E)),
                     ),
                   ),
-                SizedBox(height: 100),
+                const SizedBox(height: 100),
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -254,154 +261,122 @@ class _RegisterState extends State<Register> {
                     ),
                   ],
                 ),
-                SizedBox(height: 20),
               ],
             ),
           ),
-        ],
       ),
+      ]),
     );
   }
 }
 
-class BackgroundOvals extends StatelessWidget {
-  const BackgroundOvals({super.key});
 
-  @override
-  Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        Positioned(
-          left: 145,
-          top: -107,
-          child: Container(
-            width: 459,
-            height: 457,
-            decoration: ShapeDecoration(
-              color: const Color(0xFF528BB9),
-              shape: OvalBorder(),
-            ),
-          ),
-        ),
-        Positioned(
-          left: -345,
-          top: -282,
-          child: Container(
-            width: 712,
-            height: 566,
-            decoration: ShapeDecoration(
-              color: const Color(0xFF3C729E),
-              shape: OvalBorder(),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class RegisterInputs extends StatelessWidget {
+class RegisterForm extends StatelessWidget {
   final TextEditingController emailController;
   final TextEditingController usernameController;
   final TextEditingController passwordController;
-  final TextEditingController repetPasswordController;
+  final TextEditingController password2Controller;
 
-  const RegisterInputs({
+  const RegisterForm({
     required this.emailController,
     required this.usernameController,
     required this.passwordController,
-    required this.repetPasswordController,
+    required this.password2Controller,
   });
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20.0),
-          child: Material(
-            elevation: 4,
-            borderRadius: BorderRadius.circular(10),
-            color: Colors.white,
-            child: TextField(
-              controller: emailController,
-              decoration: InputDecoration(
-                hintText: 'Adres email',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: BorderSide.none,
+        FractionallySizedBox(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20.0),
+            child: Material(
+              elevation: 4,
+              borderRadius: BorderRadius.circular(10),
+              color: Colors.white,
+              child: TextField(
+                controller: emailController,
+                decoration: InputDecoration(
+                  hintText: 'Adres e-mail',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: BorderSide.none,
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                  prefixIcon: const Icon(FontAwesomeIcons.envelope, color: Colors.grey),
                 ),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-                prefixIcon:
-                const Icon(FontAwesomeIcons.envelope, color: Colors.grey),
               ),
             ),
           ),
         ),
         const SizedBox(height: 20),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20.0),
-          child: Material(
-            elevation: 4,
-            borderRadius: BorderRadius.circular(10),
-            color: Colors.white,
-            child: TextField(
-              controller: usernameController,
-              decoration: InputDecoration(
-                hintText: 'Nazwa użytkownika',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: BorderSide.none,
+        FractionallySizedBox(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20.0),
+            child: Material(
+              elevation: 4,
+              borderRadius: BorderRadius.circular(10),
+              color: Colors.white,
+              child: TextField(
+                controller: usernameController,
+                decoration: InputDecoration(
+                  hintText: 'Nazwa użytkownika',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: BorderSide.none,
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                  prefixIcon: const Icon(FontAwesomeIcons.solidUser, color: Colors.grey),
                 ),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-                prefixIcon:
-                const Icon(FontAwesomeIcons.solidUser, color: Colors.grey),
               ),
             ),
           ),
         ),
-        const SizedBox(height: 20),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20.0),
-          child: Material(
-            elevation: 4,
-            borderRadius: BorderRadius.circular(10),
-            color: Colors.white,
-            child: TextField(
-              controller: passwordController,
-              obscureText: true,
-              decoration: InputDecoration(
-                hintText: 'Hasło',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: BorderSide.none,
+        const SizedBox(height: 20),// Space between inputs
+        FractionallySizedBox(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20.0),
+            child: Material(
+              elevation: 4,
+              borderRadius: BorderRadius.circular(10),
+              color: Colors.white,
+              child: TextField(
+                controller: passwordController,
+                obscureText: true,
+                decoration: InputDecoration(
+                  hintText: 'Hasło',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: BorderSide.none,
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                  prefixIcon: const Icon(FontAwesomeIcons.lock, color: Colors.grey),
                 ),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-                prefixIcon:
-                const Icon(FontAwesomeIcons.lock, color: Colors.grey),
               ),
             ),
           ),
         ),
-        const SizedBox(height: 20),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20.0),
-          child: Material(
-            elevation: 4,
-            borderRadius: BorderRadius.circular(10),
-            color: Colors.white,
-            child: TextField(
-              controller: repetPasswordController,
-              obscureText: true,
-              decoration: InputDecoration(
-                hintText: 'Powtórz hasło',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: BorderSide.none,
+        const SizedBox(height: 20),// Space between inputs
+        FractionallySizedBox(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20.0),
+            child: Material(
+              elevation: 4,
+              borderRadius: BorderRadius.circular(10),
+              color: Colors.white,
+              child: TextField(
+                controller: password2Controller,
+                obscureText: true,
+                decoration: InputDecoration(
+                  hintText: 'Powtórz hasło',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: BorderSide.none,
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                  prefixIcon: const Icon(FontAwesomeIcons.lock, color: Colors.grey),
                 ),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-                prefixIcon:
-                const Icon(FontAwesomeIcons.lock, color: Colors.grey),
               ),
             ),
           ),
@@ -409,23 +384,4 @@ class RegisterInputs extends StatelessWidget {
       ],
     );
   }
-}
-
-class OvalBorder extends ShapeBorder {
-  @override
-  EdgeInsetsGeometry get dimensions => EdgeInsets.zero;
-
-  @override
-  Path getOuterPath(Rect rect, {TextDirection? textDirection}) {
-    return Path()..addOval(rect);
-  }
-
-  @override
-  Path getInnerPath(Rect rect, {TextDirection? textDirection}) => Path();
-
-  @override
-  void paint(Canvas canvas, Rect rect, {TextDirection? textDirection}) {}
-
-  @override
-  ShapeBorder scale(double t) => this;
 }

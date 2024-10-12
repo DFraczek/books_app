@@ -3,25 +3,24 @@ import 'login.dart';
 import 'register.dart';
 import 'main_page.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart'; // Import Firebase Auth
 import 'firebase_options.dart';
 
-
 void main() async {
-
   WidgetsFlutterBinding.ensureInitialized(); // Ensure bindings are initialized
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   ); // Initialize Firebase
 
+  // Check if user is logged in
+  User? user = FirebaseAuth.instance.currentUser;
+
   runApp(MaterialApp(
-    initialRoute: '/',
+    initialRoute: user != null ? '/main_page' : '/login',
     routes: {
-      '/': (context) => const Login(),
       '/login': (context) => const Login(),
       '/register': (context) => const Register(),
       '/main_page': (context) => const MainPage(),
-
     },
   ));
 }
-
