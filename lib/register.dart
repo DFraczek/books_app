@@ -16,6 +16,7 @@ class _RegisterState extends State<Register> {
   bool _isSuccessVisible = false;
   bool _isLoading = false;
   String _errorMessage = '';
+  bool _isPasswordVisible = false;
 
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _usernameController = TextEditingController();
@@ -29,7 +30,7 @@ class _RegisterState extends State<Register> {
   }
 
   bool _isValidUsername(String username) {
-    final RegExp usernameRegex = RegExp(r'^[a-zA-Z0-9]{3,20}$');
+    final RegExp usernameRegex = RegExp(r'^[a-zA-Z0-9]{3,15}$');
     return usernameRegex.hasMatch(username);
   }
 
@@ -56,7 +57,7 @@ class _RegisterState extends State<Register> {
       return false;
     } else if (!_isValidUsername(username)) {
       _errorMessage =
-      "Nazwa użytkownika musi mieć od 3 do 20 znaków i składać się tylko z liter oraz cyfr";
+      "Nazwa użytkownika musi mieć od 3 do 15 znaków i składać się tylko z liter oraz cyfr";
       return false;
     } else {
       return true;
@@ -187,6 +188,13 @@ class _RegisterState extends State<Register> {
                   usernameController: _usernameController,
                   passwordController: _passwordController,
                   password2Controller: _repetPasswordController,
+                  isPasswordVisible: _isPasswordVisible, // Przekazujemy stan widoczności hasła
+                  togglePasswordVisibility: () {
+                    setState(() {
+                      _isPasswordVisible = !_isPasswordVisible; // Zmiana widoczności
+                    });
+                  },
+
                 ),
                 const SizedBox(height: 20),
                 Center(
@@ -276,12 +284,16 @@ class RegisterForm extends StatelessWidget {
   final TextEditingController usernameController;
   final TextEditingController passwordController;
   final TextEditingController password2Controller;
+  final bool isPasswordVisible;
+  final VoidCallback togglePasswordVisibility;
 
   const RegisterForm({
     required this.emailController,
     required this.usernameController,
     required this.passwordController,
     required this.password2Controller,
+    required this.isPasswordVisible,
+    required this.togglePasswordVisibility,
   });
 
   @override
@@ -343,7 +355,7 @@ class RegisterForm extends StatelessWidget {
               color: Colors.white,
               child: TextField(
                 controller: passwordController,
-                obscureText: true,
+                obscureText: !isPasswordVisible,
                 decoration: InputDecoration(
                   hintText: 'Hasło',
                   border: OutlineInputBorder(
@@ -352,6 +364,15 @@ class RegisterForm extends StatelessWidget {
                   ),
                   contentPadding: const EdgeInsets.symmetric(horizontal: 16),
                   prefixIcon: const Icon(FontAwesomeIcons.lock, color: Colors.grey),
+                  suffixIcon: IconButton(
+                  icon: Icon(
+                  isPasswordVisible
+                  ? FontAwesomeIcons.eye
+                      : FontAwesomeIcons.eyeSlash,
+                  color: Colors.grey,
+                  ),
+                  onPressed: togglePasswordVisibility,
+                  )
                 ),
               ),
             ),
@@ -367,7 +388,7 @@ class RegisterForm extends StatelessWidget {
               color: Colors.white,
               child: TextField(
                 controller: password2Controller,
-                obscureText: true,
+                obscureText: !isPasswordVisible,
                 decoration: InputDecoration(
                   hintText: 'Powtórz hasło',
                   border: OutlineInputBorder(
@@ -376,6 +397,15 @@ class RegisterForm extends StatelessWidget {
                   ),
                   contentPadding: const EdgeInsets.symmetric(horizontal: 16),
                   prefixIcon: const Icon(FontAwesomeIcons.lock, color: Colors.grey),
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      isPasswordVisible
+                          ? FontAwesomeIcons.eye
+                          : FontAwesomeIcons.eyeSlash,
+                      color: Colors.grey,
+                    ),
+                    onPressed: togglePasswordVisibility, // Wywołanie zmiany widoczności
+                  ),
                 ),
               ),
             ),

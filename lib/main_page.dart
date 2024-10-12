@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'reccomendations.dart';
+import 'widgets/reccomendations.dart';
 import 'widgets/bottomNavBar.dart';
 import 'widgets/background_ovals.dart';
 import 'widgets/search_bar.dart';

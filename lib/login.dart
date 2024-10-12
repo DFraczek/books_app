@@ -1,7 +1,8 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:firebase_auth/firebase_auth.dart'; // Import Firebase Auth
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'widgets/background_ovals.dart';
 
 class Login extends StatefulWidget {
   const Login({super.key});
@@ -17,6 +18,7 @@ class _LoginState extends State<Login> {
 
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  bool _isPasswordVisible = false;
 
   Future<void> _handleLoginButtonPress() async {
     setState(() {
@@ -27,9 +29,23 @@ class _LoginState extends State<Login> {
     String email = _emailController.text;
     String password = _passwordController.text;
 
+    // Email format validation
+    final RegExp emailRegExp = RegExp(
+      r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
+    );
+
     if (email.isEmpty || password.isEmpty) {
       setState(() {
         _errorMessage = "Pola nie mogą być puste";
+        _isErrorVisible = true;
+        _isLoading = false;
+      });
+      return;
+    }
+
+    if (!emailRegExp.hasMatch(email)) {
+      setState(() {
+        _errorMessage = "Niepoprawny adres e-mail";
         _isErrorVisible = true;
         _isLoading = false;
       });
@@ -40,12 +56,10 @@ class _LoginState extends State<Login> {
       UserCredential userCredential = await FirebaseAuth.instance
           .signInWithEmailAndPassword(email: email, password: password);
 
-      // Get the user's unique ID from FirebaseAuth
       final user = userCredential.user;
       if (user != null) {
         final storage = FlutterSecureStorage();
-        await storage.write(key: 'user_id',
-            value: user.uid); // Store the user ID in secure storage
+        await storage.write(key: 'user_id', value: user.uid);
 
         Navigator.pushNamed(context, '/main_page');
       }
@@ -53,7 +67,7 @@ class _LoginState extends State<Login> {
       setState(() {
         if (e.code == 'user-not-found') {
           _errorMessage = "Użytkownik o podanym adresie e-mail nie istnieje";
-        } else if (e.code == 'wrong-password') {
+        } else if (e.code == 'invalid-credential') {
           _errorMessage = "Niepoprawne hasło";
         } else {
           _errorMessage = "Wystąpił błąd. Spróbuj ponownie";
@@ -72,9 +86,7 @@ class _LoginState extends State<Login> {
 
   @override
   Widget build(BuildContext context) {
-    final isPortrait = MediaQuery
-        .of(context)
-        .orientation == Orientation.portrait;
+    final isPortrait = MediaQuery.of(context).orientation == Orientation.portrait;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF9F1E5),
@@ -84,7 +96,6 @@ class _LoginState extends State<Login> {
           BackgroundOvals(),
           GestureDetector(
             onTap: () {
-              // Schowaj klawiaturę po kliknięciu poza pole tekstowe
               FocusScope.of(context).unfocus();
             },
             child: SingleChildScrollView(
@@ -107,22 +118,25 @@ class _LoginState extends State<Login> {
                   LoginForm(
                     emailController: _emailController,
                     passwordController: _passwordController,
+                    isPasswordVisible: _isPasswordVisible,
+                    onPasswordVisibilityToggle: () {
+                      setState(() {
+                        _isPasswordVisible = !_isPasswordVisible;
+                      });
+                    },
                   ),
                   SizedBox(height: 40),
                   LoginButton(onPressed: _handleLoginButtonPress),
-                  if (_isErrorVisible)
-                    SizedBox(height: 20),
+                  if (_isErrorVisible) SizedBox(height: 20),
                   if (_isErrorVisible)
                     Center(
                       child: ErrorMessage(message: _errorMessage),
                     ),
-                  if (_isLoading)
-                    SizedBox(height: 20),
+                  if (_isLoading) SizedBox(height: 20),
                   if (_isLoading)
                     Center(
                       child: CircularProgressIndicator(
-                        valueColor: AlwaysStoppedAnimation<Color>(
-                            Color(0xFF3C729E)),
+                        valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF3C729E)),
                       ),
                     ),
                   SizedBox(height: isPortrait ? 170 : 100),
@@ -136,43 +150,8 @@ class _LoginState extends State<Login> {
               ),
             ),
           ),
-
         ],
       ),
-    );
-  }
-}
-
-class BackgroundOvals extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        Positioned(
-          left: 145,
-          top: -107,
-          child: Container(
-            width: 459,
-            height: 457,
-            decoration: const ShapeDecoration(
-              color: Color(0xFF528BB9),
-              shape: OvalBorder(),
-            ),
-          ),
-        ),
-        Positioned(
-          left: -345,
-          top: -282,
-          child: Container(
-            width: 712,
-            height: 566,
-            decoration: const ShapeDecoration(
-              color: Color(0xFF3C729E),
-              shape: OvalBorder(),
-            ),
-          ),
-        ),
-      ],
     );
   }
 }
@@ -180,10 +159,14 @@ class BackgroundOvals extends StatelessWidget {
 class LoginForm extends StatelessWidget {
   final TextEditingController emailController;
   final TextEditingController passwordController;
+  final bool isPasswordVisible;
+  final VoidCallback onPasswordVisibilityToggle;
 
   const LoginForm({
     required this.emailController,
     required this.passwordController,
+    required this.isPasswordVisible,
+    required this.onPasswordVisibilityToggle,
   });
 
   @override
@@ -212,7 +195,7 @@ class LoginForm extends StatelessWidget {
             ),
           ),
         ),
-        const SizedBox(height: 40), // Space between inputs
+        const SizedBox(height: 40),
         FractionallySizedBox(
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20.0),
@@ -222,7 +205,7 @@ class LoginForm extends StatelessWidget {
               color: Colors.white,
               child: TextField(
                 controller: passwordController,
-                obscureText: true,
+                obscureText: !isPasswordVisible,
                 decoration: InputDecoration(
                   hintText: 'Hasło',
                   border: OutlineInputBorder(
@@ -231,6 +214,13 @@ class LoginForm extends StatelessWidget {
                   ),
                   contentPadding: const EdgeInsets.symmetric(horizontal: 16),
                   prefixIcon: const Icon(FontAwesomeIcons.lock, color: Colors.grey),
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      isPasswordVisible ? FontAwesomeIcons.eyeSlash : FontAwesomeIcons.eye,
+                      color: Colors.grey,
+                    ),
+                    onPressed: onPasswordVisibilityToggle,
+                  ),
                 ),
               ),
             ),
@@ -286,7 +276,7 @@ class ErrorMessage extends StatelessWidget {
     return Text(
       message,
       style: TextStyle(
-        color: message == "Konto zostało utworzone" ? Colors.green : Colors.red,
+        color: Colors.red,
       ),
     );
   }

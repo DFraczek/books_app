@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -140,29 +141,100 @@ class _ProfileState extends State<Profile> {
       context: context,
       builder: (BuildContext context) {
         TextEditingController controller = TextEditingController(text: aboutMe);
-        return AlertDialog(
-          backgroundColor: const Color(0xFFF9F1E5),
-          title: Text('Edytuj opis'),
-          content: TextField(
-            controller: controller,
-            decoration: InputDecoration(hintText: "Napisz coś o sobie..."),
-            maxLength: 100,
-            maxLines: 3,
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          child: Container(
+            decoration: BoxDecoration(
+              color: const Color(0xFFF9F1E5),
+              borderRadius: BorderRadius.circular(10),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black26,
+                  offset: Offset(0, 2),
+                  blurRadius: 6,
+                  spreadRadius: 1,
+                ),
+              ],
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Edytuj opis',
+                    style: TextStyle(fontFamily: 'Inter', fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  SizedBox(height: 10),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(10),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black26,
+                          offset: Offset(0, 2),
+                          blurRadius: 6,
+                          spreadRadius: 1,
+                        ),
+                      ],
+                    ),
+                    child: TextField(
+                      controller: controller,
+                      decoration: InputDecoration(
+                        hintText: "Napisz coś o sobie...",
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: BorderSide.none,
+                        ),
+                        filled: true,
+                        fillColor: Colors.transparent,
+                      ),
+                      maxLength: 100,
+                      keyboardType: TextInputType.text, // Restrict keyboard to text input
+                      textInputAction: TextInputAction.done, // Change Enter key to done
+                      inputFormatters: [
+                        FilteringTextInputFormatter.deny(RegExp('\n')),
+                      ],
+                    ),
+                  ),
+                  SizedBox(height: 10),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      TextButton(
+                        onPressed: () {
+                          Navigator.of(context).pop(controller.text);
+                        },
+                        style: TextButton.styleFrom(
+                          backgroundColor: Color(0xFF3C729E),
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                        child: Text('Zapisz'),
+                      ),
+                      SizedBox(width: 10), // Space between buttons
+                      TextButton(
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
+                        style: TextButton.styleFrom(
+                          backgroundColor: Color(0xFF3C729E),
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                        child: Text('Anuluj'),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
           ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop(controller.text);
-              },
-              child: Text('Zapisz'),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: Text('Anuluj'),
-            ),
-          ],
         );
       },
     );
@@ -182,109 +254,424 @@ class _ProfileState extends State<Profile> {
   Future<void> _changeEmail() async {
     TextEditingController oldEmailController = TextEditingController();
     TextEditingController newEmailController = TextEditingController();
+    ValueNotifier<String?> errorMessageNotifier = ValueNotifier<String?>(null);
 
-    // Show dialog to enter old and new email
     String? newEmail = await showDialog<String>(
       context: context,
       builder: (BuildContext context) {
-        return AlertDialog(
-          backgroundColor: const Color(0xFFF9F1E5),
-          title: Text('Zmień adres e-mail'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: oldEmailController,
-                decoration: InputDecoration(hintText: "Wprowadź stary adres e-mail..."),
-                keyboardType: TextInputType.emailAddress,
+        return Dialog(
+            backgroundColor: Colors.transparent,
+            child: Container(
+              decoration: BoxDecoration(
+                color: const Color(0xFFF9F1E5),
+                borderRadius: BorderRadius.circular(10),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black26,
+                    offset: Offset(0, 2),
+                    blurRadius: 6,
+                    spreadRadius: 1,
+                  ),
+                ],
               ),
-              TextField(
-                controller: newEmailController,
-                decoration: InputDecoration(hintText: "Wprowadź nowy adres e-mail..."),
-                keyboardType: TextInputType.emailAddress,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Text('Zmień adres e-mail', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  ),
+                  Container(
+                    width: MediaQuery.of(context).size.width * 0.7,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(10),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black26,
+                          offset: Offset(0, 2),
+                          blurRadius: 6,
+                          spreadRadius: 1,
+                        ),
+                      ],
+                    ),
+                    child: TextField(
+                      controller: oldEmailController,
+                      decoration: InputDecoration(
+                        hintText: "Stary adres e-mail",
+                        filled: true,
+                        fillColor: Colors.transparent,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: BorderSide.none,
+                        ),
+                        prefixIcon: Padding(
+                          padding: const EdgeInsets.all(12.0),
+                          child: Icon(FontAwesomeIcons.envelope, color: Colors.grey),
+                        ),
+                      ),
+                      keyboardType: TextInputType.emailAddress,
+                    ),
+                  ),
+                  SizedBox(height: 10),
+                  // Input field for new email
+                  Container(
+                    width: MediaQuery.of(context).size.width * 0.7,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(10),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black26,
+                          offset: Offset(0, 2),
+                          blurRadius: 6,
+                          spreadRadius: 1,
+                        ),
+                      ],
+                    ),
+                    child: TextField(
+                      controller: newEmailController,
+                      decoration: InputDecoration(
+                        hintText: "Nowy adres e-mail",
+                        filled: true,
+                        fillColor: Colors.transparent,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: BorderSide.none,
+                        ),
+                        prefixIcon: Padding(
+                          padding: const EdgeInsets.all(12.0),
+                          child: Icon(FontAwesomeIcons.envelope, color: Colors.grey),
+                        ),
+                      ),
+                      keyboardType: TextInputType.emailAddress,
+                    ),
+                  ),
+                  SizedBox(height: 10),
+                  ValueListenableBuilder<String?>(
+                    valueListenable: errorMessageNotifier,
+                    builder: (context, errorMessage, child) {
+                      return Visibility(
+                        visible: errorMessage != null,
+                        child: Text(
+                          errorMessage ?? '',
+                          style: TextStyle(color: Colors.red),
+                        ),
+                      );
+                    },
+                  ),
+                  SizedBox(height: 10),
+                  OverflowBar(
+                    alignment: MainAxisAlignment.end,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(right: 16.0),
+                        child: TextButton(
+                          onPressed: () async {
+                            errorMessageNotifier.value = null;
+
+                            final storage = FlutterSecureStorage();
+                            String? userId = await storage.read(key: 'user_id');
+
+                            // Regex for validating email
+                            final RegExp emailRegex = RegExp(
+                              r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
+                            );
+
+                            if (!emailRegex.hasMatch(newEmailController.text)) {
+                              errorMessageNotifier.value = 'Proszę wprowadzić prawidłowy adres e-mail.';
+                              return;
+                            }
+
+                            QuerySnapshot existingUsers = await FirebaseFirestore.instance
+                                .collection('user')
+                                .where('email', isEqualTo: newEmailController.text)
+                                .get();
+
+                            if (existingUsers.docs.isNotEmpty) {
+                              errorMessageNotifier.value = 'Adres e-mail jest już zajęty.';
+                              return;
+                            }
+
+                            if (userId != null) {
+                              DocumentSnapshot userDoc = await FirebaseFirestore.instance.collection('user').doc(userId).get();
+                              String? oldEmail = userDoc['email'];
+
+                              if (oldEmailController.text != oldEmail) {
+                                errorMessageNotifier.value = 'Wprowadzony stary adres e-mail jest nieprawidłowy.';
+                                return;
+                              }
+
+                              await FirebaseFirestore.instance.collection('user').doc(userId).update({'email': newEmailController.text});
+                              await _fetchUsername();
+                              Navigator.of(context).pop(newEmailController.text);
+                            }
+                          },
+                          style: TextButton.styleFrom(
+                            backgroundColor: Color(0xFF3C729E),
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                          child: Text('Zapisz'),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.only(right: 16.0),
+                        child: TextButton(
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                          },
+                          style: TextButton.styleFrom(
+                            backgroundColor: Color(0xFF3C729E),
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                          child: Text('Anuluj'),
+                        ),
+                      ),
+                    ],
+                  ),
+
+                ],
               ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop(newEmailController.text);
-              },
-              child: Text('Zapisz'),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: Text('Anuluj'),
-            ),
-          ],
+            )
         );
       },
     );
-
-    if (newEmail != null && newEmail.isNotEmpty) {
-      final storage = FlutterSecureStorage();
-      String? userId = await storage.read(key: 'user_id');
-
-      // Regex for validating email
-      final RegExp emailRegex = RegExp(
-        r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
-      );
-
-      if (!emailRegex.hasMatch(newEmail)) {
-        _showErrorDialog('Proszę wprowadzić prawidłowy adres e-mail.');
-        return;
-      }
-
-      // Check if the new email is unique
-      QuerySnapshot existingUsers = await FirebaseFirestore.instance
-          .collection('user')
-          .where('email', isEqualTo: newEmail)
-          .get();
-
-      if (existingUsers.docs.isNotEmpty) {
-        _showErrorDialog('Adres e-mail jest już zajęty.');
-        return;
-      }
-
-      // Check if the old email matches the one in Firestore
-      if (userId != null) {
-        DocumentSnapshot userDoc = await FirebaseFirestore.instance.collection('user').doc(userId).get();
-        String? oldEmail = userDoc['email'];
-
-        if (oldEmailController.text != oldEmail) {
-          _showErrorDialog('Wprowadzony stary adres e-mail jest nieprawidłowy.');
-          return;
-        }
-
-        // If everything is valid, update the email in Firestore
-        await FirebaseFirestore.instance.collection('user').doc(userId).update({'email': newEmail});
-
-      }
-    }
   }
 
-  void _showErrorDialog(String message) {
-    showDialog(
+  Future<void> _changePassword() async {
+    TextEditingController oldPasswordController = TextEditingController();
+    TextEditingController newPasswordController = TextEditingController();
+    TextEditingController confirmPasswordController = TextEditingController();
+    ValueNotifier<String?> errorMessageNotifier = ValueNotifier<String?>(null);
+    bool isPasswordVisible = false;
+
+    await showDialog<String>(
       context: context,
       builder: (BuildContext context) {
-        return AlertDialog(
-          backgroundColor: const Color(0xFFF9F1E5),
-          title: Text('Błąd'),
-          content: Text(message),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: Text('OK'),
-            ),
-          ],
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return Dialog(
+              backgroundColor: Colors.transparent,
+              child: SingleChildScrollView(
+                padding: EdgeInsets.only(
+                  bottom: MediaQuery.of(context).viewInsets.bottom, // Przesunięcie przy wywołaniu klawiatury
+                ),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF9F1E5),
+                    borderRadius: BorderRadius.circular(10),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black26,
+                        offset: Offset(0, 2),
+                        blurRadius: 6,
+                        spreadRadius: 1,
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Text('Zmień hasło',
+                            style: TextStyle(
+                                fontSize: 18, fontWeight: FontWeight.bold)),
+                      ),
+                      _buildPasswordInputField(
+                        context,
+                        controller: oldPasswordController,
+                        hintText: "Stare hasło",
+                        isPasswordVisible: isPasswordVisible,
+                        onVisibilityToggle: () {
+                          setState(() {
+                            isPasswordVisible = !isPasswordVisible;
+                          });
+                        },
+                      ),
+                      SizedBox(height: 10),
+                      // Input field for new password
+                      _buildPasswordInputField(
+                        context,
+                        controller: newPasswordController,
+                        hintText: "Nowe hasło",
+                        isPasswordVisible: isPasswordVisible,
+                        onVisibilityToggle: () {
+                          setState(() {
+                            isPasswordVisible = !isPasswordVisible;
+                          });
+                        },
+                      ),
+                      SizedBox(height: 10),
+                      _buildPasswordInputField(
+                        context,
+                        controller: confirmPasswordController,
+                        hintText: "Potwierdź nowe hasło",
+                        isPasswordVisible: isPasswordVisible,
+                        onVisibilityToggle: () {
+                          setState(() {
+                            isPasswordVisible = !isPasswordVisible;
+                          });
+                        },
+                      ),
+                      SizedBox(height: 10),
+                      ValueListenableBuilder<String?>(
+                        valueListenable: errorMessageNotifier,
+                        builder: (context, errorMessage, child) {
+                          return Visibility(
+                            visible: errorMessage != null,
+                            child: Text(
+                              errorMessage ?? '',
+                              style: TextStyle(color: Colors.red),
+                            ),
+                          );
+                        },
+                      ),
+                      SizedBox(height: 10),
+                      OverflowBar(
+                        alignment: MainAxisAlignment.end,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.only(right: 16.0),
+                            child: TextButton(
+                              onPressed: () async {
+                                errorMessageNotifier.value = null;
+
+                                final user = FirebaseAuth.instance.currentUser;
+                                if (user == null) {
+                                  errorMessageNotifier.value =
+                                  'Nie jesteś zalogowany.';
+                                  return;
+                                }
+
+                                try {
+                                  AuthCredential credential =
+                                  EmailAuthProvider.credential(
+                                    email: user.email!,
+                                    password: oldPasswordController.text,
+                                  );
+
+                                  await user.reauthenticateWithCredential(
+                                      credential);
+
+                                  if (newPasswordController.text !=
+                                      confirmPasswordController.text) {
+                                    errorMessageNotifier.value =
+                                    'Nowe hasła nie pasują do siebie.';
+                                    return;
+                                  }
+
+                                  await user.updatePassword(
+                                      newPasswordController.text);
+                                  Navigator.of(context).pop();
+                                } catch (e) {
+                                  if (e is FirebaseAuthException) {
+                                    if (e.code == 'invalid-credential') {
+                                      errorMessageNotifier.value =
+                                      'Stare hasło jest nieprawidłowe.';
+                                    } else {
+                                      errorMessageNotifier.value =
+                                      'Błąd zmiany hasła. Spróbuj ponownie';
+                                    }
+                                  } else {
+                                    errorMessageNotifier.value =
+                                    'Błąd zmiany hasła. Spróbuj ponownie';
+                                  }
+                                }
+                              },
+                              style: TextButton.styleFrom(
+                                backgroundColor: Color(0xFF3C729E),
+                                foregroundColor: Colors.white,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                              ),
+                              child: Text('Zapisz'),
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.only(right: 16.0),
+                            child: TextButton(
+                              onPressed: () {
+                                Navigator.of(context).pop();
+                              },
+                              style: TextButton.styleFrom(
+                                backgroundColor: Color(0xFF3C729E),
+                                foregroundColor: Colors.white,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                              ),
+                              child: Text('Anuluj'),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
         );
       },
     );
   }
+
+  Widget _buildPasswordInputField(BuildContext context,
+      {required TextEditingController controller,
+        required String hintText,
+        required bool isPasswordVisible,
+        required VoidCallback onVisibilityToggle}) {
+    return Container(
+      width: MediaQuery.of(context).size.width * 0.7,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(10),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black26,
+            offset: Offset(0, 2),
+            blurRadius: 6,
+            spreadRadius: 1,
+          ),
+        ],
+      ),
+      child: TextField(
+        controller: controller,
+        obscureText: !isPasswordVisible,
+        decoration: InputDecoration(
+          hintText: hintText,
+          filled: true,
+          fillColor: Colors.transparent,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: BorderSide.none,
+          ),
+          prefixIcon: Padding(
+            padding: const EdgeInsets.all(12.0),
+            child: Icon(FontAwesomeIcons.lock, color: Colors.grey),
+          ),
+          suffixIcon: IconButton(
+            icon: Icon(
+              isPasswordVisible
+                  ? FontAwesomeIcons.eyeSlash
+                  : FontAwesomeIcons.eye,
+              color: Colors.grey,
+            ),
+            onPressed: onVisibilityToggle,
+          ),
+        ),
+      ),
+    );
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -390,7 +777,8 @@ class _ProfileState extends State<Profile> {
                   child: Text(
                     username ?? 'Ładowanie...',
                     style: TextStyle(
-                      fontSize: 22,
+                      fontSize: (username?.length ?? 0) > 12 ? 18 : 22,
+                      fontFamily: 'Inter',
                       color: Colors.black,
                       fontWeight: FontWeight.w600,
                     ),
@@ -420,6 +808,7 @@ class _ProfileState extends State<Profile> {
                                 fontSize: 14,
                                 color: Colors.grey,
                                 fontWeight: FontWeight.w600,
+                                fontFamily: 'Inter',
                               ),
                               textAlign: TextAlign.start,
                             ),
@@ -456,6 +845,7 @@ class _ProfileState extends State<Profile> {
                           fontSize: 16,
                           color: Colors.black,
                           fontWeight: FontWeight.w400,
+                          fontFamily: 'Inter',
                         ),
                       ),
                     ],
@@ -481,6 +871,7 @@ class _ProfileState extends State<Profile> {
                           fontSize: 16,
                           color: Colors.black,
                           fontWeight: FontWeight.w400,
+                          fontFamily: 'Inter',
                         ),
                       ),
                     ],
@@ -508,7 +899,7 @@ class _ProfileState extends State<Profile> {
             child: GestureDetector(
               onTap: _changeEmail,
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween, // Change to spaceBetween
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Padding(
                     padding: const EdgeInsets.only(left: 20.0),
@@ -526,6 +917,7 @@ class _ProfileState extends State<Profile> {
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w400,
+                          fontFamily: 'Inter',
                         ),
                       ),
                     ),
@@ -558,27 +950,31 @@ class _ProfileState extends State<Profile> {
                 ),
               ],
             ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(left: 20.0, right: 30.0),
-                  child: Icon(
-                    FontAwesomeIcons.lock,
-                    color: Color(0xFF3C729E),
-                  ),
-                ),
-                Expanded(
-                  child: Text(
-                    'Zmień hasło',
-                    textAlign: TextAlign.left,
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w400,
+            child: GestureDetector(
+              onTap: () => _changePassword(),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(left: 20.0, right: 30.0),
+                    child: Icon(
+                      FontAwesomeIcons.lock,
+                      color: Color(0xFF3C729E),
                     ),
                   ),
-                ),
-              ],
+                  Expanded(
+                    child: Text(
+                      'Zmień hasło',
+                      textAlign: TextAlign.left,
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w400,
+                        fontFamily: 'Inter',
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
           SizedBox(height: 16),
@@ -601,6 +997,7 @@ class _ProfileState extends State<Profile> {
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 16,
+                  fontFamily: 'Inter',
                 ),
               ),
             ),
