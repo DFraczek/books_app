@@ -261,183 +261,185 @@ class _ProfileState extends State<Profile> {
       builder: (BuildContext context) {
         return Dialog(
             backgroundColor: Colors.transparent,
-            child: Container(
-              decoration: BoxDecoration(
-                color: const Color(0xFFF9F1E5),
-                borderRadius: BorderRadius.circular(10),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black26,
-                    offset: Offset(0, 2),
-                    blurRadius: 6,
-                    spreadRadius: 1,
-                  ),
-                ],
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Text('Zmień adres e-mail', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                  ),
-                  Container(
-                    width: MediaQuery.of(context).size.width * 0.7,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(10),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black26,
-                          offset: Offset(0, 2),
-                          blurRadius: 6,
-                          spreadRadius: 1,
-                        ),
-                      ],
-                    ),
-                    child: TextField(
-                      controller: oldEmailController,
-                      decoration: InputDecoration(
-                        hintText: "Stary adres e-mail",
-                        filled: true,
-                        fillColor: Colors.transparent,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide: BorderSide.none,
-                        ),
-                        prefixIcon: Padding(
-                          padding: const EdgeInsets.all(12.0),
-                          child: Icon(FontAwesomeIcons.envelope, color: Colors.grey),
-                        ),
-                      ),
-                      keyboardType: TextInputType.emailAddress,
-                    ),
-                  ),
-                  SizedBox(height: 10),
-                  // Input field for new email
-                  Container(
-                    width: MediaQuery.of(context).size.width * 0.7,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(10),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black26,
-                          offset: Offset(0, 2),
-                          blurRadius: 6,
-                          spreadRadius: 1,
-                        ),
-                      ],
-                    ),
-                    child: TextField(
-                      controller: newEmailController,
-                      decoration: InputDecoration(
-                        hintText: "Nowy adres e-mail",
-                        filled: true,
-                        fillColor: Colors.transparent,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide: BorderSide.none,
-                        ),
-                        prefixIcon: Padding(
-                          padding: const EdgeInsets.all(12.0),
-                          child: Icon(FontAwesomeIcons.envelope, color: Colors.grey),
-                        ),
-                      ),
-                      keyboardType: TextInputType.emailAddress,
-                    ),
-                  ),
-                  SizedBox(height: 10),
-                  ValueListenableBuilder<String?>(
-                    valueListenable: errorMessageNotifier,
-                    builder: (context, errorMessage, child) {
-                      return Visibility(
-                        visible: errorMessage != null,
-                        child: Text(
-                          errorMessage ?? '',
-                          style: TextStyle(color: Colors.red),
-                        ),
-                      );
-                    },
-                  ),
-                  SizedBox(height: 10),
-                  OverflowBar(
-                    alignment: MainAxisAlignment.end,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.only(right: 16.0),
-                        child: TextButton(
-                          onPressed: () async {
-                            errorMessageNotifier.value = null;
-
-                            final storage = FlutterSecureStorage();
-                            String? userId = await storage.read(key: 'user_id');
-
-                            // Regex for validating email
-                            final RegExp emailRegex = RegExp(
-                              r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
-                            );
-
-                            if (!emailRegex.hasMatch(newEmailController.text)) {
-                              errorMessageNotifier.value = 'Proszę wprowadzić prawidłowy adres e-mail.';
-                              return;
-                            }
-
-                            QuerySnapshot existingUsers = await FirebaseFirestore.instance
-                                .collection('user')
-                                .where('email', isEqualTo: newEmailController.text)
-                                .get();
-
-                            if (existingUsers.docs.isNotEmpty) {
-                              errorMessageNotifier.value = 'Adres e-mail jest już zajęty.';
-                              return;
-                            }
-
-                            if (userId != null) {
-                              DocumentSnapshot userDoc = await FirebaseFirestore.instance.collection('user').doc(userId).get();
-                              String? oldEmail = userDoc['email'];
-
-                              if (oldEmailController.text != oldEmail) {
-                                errorMessageNotifier.value = 'Wprowadzony stary adres e-mail jest nieprawidłowy.';
-                                return;
-                              }
-
-                              await FirebaseFirestore.instance.collection('user').doc(userId).update({'email': newEmailController.text});
-                              await _fetchUsername();
-                              Navigator.of(context).pop(newEmailController.text);
-                            }
-                          },
-                          style: TextButton.styleFrom(
-                            backgroundColor: Color(0xFF3C729E),
-                            foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                          ),
-                          child: Text('Zapisz'),
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.only(right: 16.0),
-                        child: TextButton(
-                          onPressed: () {
-                            Navigator.of(context).pop();
-                          },
-                          style: TextButton.styleFrom(
-                            backgroundColor: Color(0xFF3C729E),
-                            foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                          ),
-                          child: Text('Anuluj'),
-                        ),
+            child: SingleChildScrollView(
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF9F1E5),
+                    borderRadius: BorderRadius.circular(10),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black26,
+                        offset: Offset(0, 2),
+                        blurRadius: 6,
+                        spreadRadius: 1,
                       ),
                     ],
                   ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Text('Zmień adres e-mail', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                      ),
+                      Container(
+                        width: MediaQuery.of(context).size.width * 0.7,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(10),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black26,
+                              offset: Offset(0, 2),
+                              blurRadius: 6,
+                              spreadRadius: 1,
+                            ),
+                          ],
+                        ),
+                        child: TextField(
+                          controller: oldEmailController,
+                          decoration: InputDecoration(
+                            hintText: "Stary adres e-mail",
+                            filled: true,
+                            fillColor: Colors.transparent,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                              borderSide: BorderSide.none,
+                            ),
+                            prefixIcon: Padding(
+                              padding: const EdgeInsets.all(12.0),
+                              child: Icon(FontAwesomeIcons.envelope, color: Colors.grey),
+                            ),
+                          ),
+                          keyboardType: TextInputType.emailAddress,
+                        ),
+                      ),
+                      SizedBox(height: 10),
+                      // Input field for new email
+                      Container(
+                        width: MediaQuery.of(context).size.width * 0.7,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(10),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black26,
+                              offset: Offset(0, 2),
+                              blurRadius: 6,
+                              spreadRadius: 1,
+                            ),
+                          ],
+                        ),
+                        child: TextField(
+                          controller: newEmailController,
+                          decoration: InputDecoration(
+                            hintText: "Nowy adres e-mail",
+                            filled: true,
+                            fillColor: Colors.transparent,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                              borderSide: BorderSide.none,
+                            ),
+                            prefixIcon: Padding(
+                              padding: const EdgeInsets.all(12.0),
+                              child: Icon(FontAwesomeIcons.envelope, color: Colors.grey),
+                            ),
+                          ),
+                          keyboardType: TextInputType.emailAddress,
+                        ),
+                      ),
+                      SizedBox(height: 10),
+                      ValueListenableBuilder<String?>(
+                        valueListenable: errorMessageNotifier,
+                        builder: (context, errorMessage, child) {
+                          return Visibility(
+                            visible: errorMessage != null,
+                            child: Text(
+                              errorMessage ?? '',
+                              style: TextStyle(color: Colors.red),
+                            ),
+                          );
+                        },
+                      ),
+                      SizedBox(height: 10),
+                      OverflowBar(
+                        alignment: MainAxisAlignment.end,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.only(right: 16.0),
+                            child: TextButton(
+                              onPressed: () async {
+                                errorMessageNotifier.value = null;
 
-                ],
-              ),
+                                final storage = FlutterSecureStorage();
+                                String? userId = await storage.read(key: 'user_id');
+
+                                // Regex for validating email
+                                final RegExp emailRegex = RegExp(
+                                  r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
+                                );
+
+                                if (!emailRegex.hasMatch(newEmailController.text)) {
+                                  errorMessageNotifier.value = 'Proszę wprowadzić prawidłowy adres e-mail.';
+                                  return;
+                                }
+
+                                QuerySnapshot existingUsers = await FirebaseFirestore.instance
+                                    .collection('user')
+                                    .where('email', isEqualTo: newEmailController.text)
+                                    .get();
+
+                                if (existingUsers.docs.isNotEmpty) {
+                                  errorMessageNotifier.value = 'Adres e-mail jest już zajęty.';
+                                  return;
+                                }
+
+                                if (userId != null) {
+                                  DocumentSnapshot userDoc = await FirebaseFirestore.instance.collection('user').doc(userId).get();
+                                  String? oldEmail = userDoc['email'];
+
+                                  if (oldEmailController.text != oldEmail) {
+                                    errorMessageNotifier.value = 'Wprowadzony stary adres e-mail jest nieprawidłowy.';
+                                    return;
+                                  }
+
+                                  await FirebaseFirestore.instance.collection('user').doc(userId).update({'email': newEmailController.text});
+                                  await _fetchUsername();
+                                  Navigator.of(context).pop(newEmailController.text);
+                                }
+                              },
+                              style: TextButton.styleFrom(
+                                backgroundColor: Color(0xFF3C729E),
+                                foregroundColor: Colors.white,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                              ),
+                              child: Text('Zapisz'),
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.only(right: 16.0),
+                            child: TextButton(
+                              onPressed: () {
+                                Navigator.of(context).pop();
+                              },
+                              style: TextButton.styleFrom(
+                                backgroundColor: Color(0xFF3C729E),
+                                foregroundColor: Colors.white,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                              ),
+                              child: Text('Anuluj'),
+                            ),
+                          ),
+                        ],
+                      ),
+
+                    ],
+                  ),
+                )
             )
         );
       },
