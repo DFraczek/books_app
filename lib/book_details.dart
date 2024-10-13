@@ -26,10 +26,15 @@ class BookDetails extends StatelessWidget {
         .get();
 
     double totalRating = 0.0;
-    int count = snapshot.docs.length;
+    int count = 0;
 
     for (var doc in snapshot.docs) {
-      totalRating += (doc['rate'] as int).toDouble();
+      final data = doc.data() as Map<String, dynamic>?;
+
+      if (data != null && data.containsKey('rate') && data['rate'] != null) {
+        totalRating += (data['rate'] as int).toDouble();
+        count++;
+      }
     }
 
     double averageRating = count > 0 ? totalRating / count : 0.0;
@@ -39,6 +44,7 @@ class BookDetails extends StatelessWidget {
       'count': count,
     };
   }
+
 
   Future<List<String>> _fetchShelfNamesWithBook(String bookId) async {
     String? userId = await storage.read(key: 'user_id');
@@ -66,6 +72,7 @@ class BookDetails extends StatelessWidget {
     if (userId == null) {
       return [];
     }
+
     QuerySnapshot reviewSnapshot = await FirebaseFirestore.instance
         .collection('review')
         .where('user', isEqualTo: userId)
@@ -73,15 +80,77 @@ class BookDetails extends StatelessWidget {
         .get();
 
     List<Map<String, dynamic>> reviews = reviewSnapshot.docs.map((doc) {
-      return {
-        'rate': doc['rate'],
-        'text': doc['text'],
-      };
+      // Initialize a map to hold the review data
+      Map<String, dynamic> reviewData = {};
+
+      // Get the document data safely
+      final data = doc.data() as Map<String, dynamic>?;
+
+      // Check if data is not null and then check for 'rate'
+      if (data != null && data.containsKey('rate')) {
+        reviewData['rate'] = data['rate'];
+      }
+
+      // Check if data is not null and then check for 'text'
+      if (data != null && data.containsKey('text')) {
+        reviewData['text'] = data['text'];
+      }
+
+      return reviewData;
     }).toList();
 
     return reviews;
   }
 
+  Widget _addRate(BuildContext context) {
+    return GestureDetector(
+      onTap: () {
+        // TODO: Add rate implementation
+      },
+      child: const Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            'Oceń książkę',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: Colors.grey,
+            ),
+          ),
+          Icon(
+            FontAwesomeIcons.chevronRight,
+            color: Colors.grey,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _addReview(BuildContext context){
+    return GestureDetector(
+      onTap: () {
+        // TODO: Add review implementation
+      },
+      child: const Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            'Napisz recenzję',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: Colors.grey,
+            ),
+          ),
+          Icon(
+            FontAwesomeIcons.chevronRight,
+            color: Colors.grey,
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -89,6 +158,7 @@ class BookDetails extends StatelessWidget {
     final String author = (book['author'] as List<dynamic>).join(', ');
     final String? coverImage = book['coverImage'];
     final String bookId = book['id'];
+    //const String bookId = 'AIFjwkWAWx5V8argprhj';
     final String description = book['description'];
     final screenWidth = MediaQuery.of(context).size.width;
     final containerWidth = screenWidth * 0.88;
@@ -419,7 +489,6 @@ class BookDetails extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 20),
-
                 Center(
                   // -----------------------------------------------------------------------rate section
                   child: Container(
@@ -453,32 +522,17 @@ class BookDetails extends StatelessWidget {
                                       return Text('Błąd: ${snapshot.error}');
                                     } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
                                       // If the user has not rated the book
-                                      return GestureDetector(
-                                        onTap: () {
-                                          // TODO: Add rate implementation
-                                        },
-                                        child: const Row(
-                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                          children: [
-                                            Text(
-                                              'Oceń książkę',
-                                              style: TextStyle(
-                                                fontSize: 20,
-                                                fontWeight: FontWeight.bold,
-                                                color: Colors.grey,
-                                              ),
-                                            ),
-                                            Icon(
-                                              FontAwesomeIcons.chevronRight,
-                                              color: Colors.grey,
-                                            ),
-                                          ],
-                                        ),
-                                      );
+                                      return _addRate(context);
                                     } else {
                                       // If the user has rated the book
                                       Map<String, dynamic> review = snapshot.data!.first;
-                                      int rate = review['rate'];
+                                      // Check if 'rate' is null
+                                      if (review['rate'] == null) {
+                                        return _addRate(context);
+                                      }
+
+                                      // If rate is not null
+                                      int rate = review['rate'] ?? 0; // Default to 0 if null
                                       List<Widget> stars = List.generate(5, (index) {
                                         return Icon(
                                           index < rate ? FontAwesomeIcons.solidStar : FontAwesomeIcons.star,
@@ -525,15 +579,20 @@ class BookDetails extends StatelessWidget {
                                           ],
                                         ),
                                       );
-                                    }},),],
+                                    }
+                                  },
+                                ),
+                              ],
                             ),
-                          ),],
+                          ),
+                        ],
                       ),
                     ),
                   ),
                 ),
+
                 const SizedBox(height: 20),
-                Center( //---------------------------------------------------------------------------------------------- review section
+                Center(
                   child: Container(
                     width: containerWidth,
                     decoration: BoxDecoration(
@@ -560,31 +619,17 @@ class BookDetails extends StatelessWidget {
                                   return const Center(child: CircularProgressIndicator());
                                 } else if (snapshot.hasError) {
                                   return Center(child: Text('Błąd: ${snapshot.error}'));
-                                } else if (!snapshot.hasData || snapshot.data!.isEmpty) { // If there are no reviews
-                                  return GestureDetector(
-                                    onTap: () {
-                                      // TODO: Add rate implementation
-                                    },
-                                    child: const Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Text(
-                                          'Napisz recenzję',
-                                          style: TextStyle(
-                                            fontSize: 20,
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.grey,
-                                          ),
-                                        ),
-                                        Icon(
-                                          FontAwesomeIcons.chevronRight,
-                                          color: Colors.grey,
-                                        ),
-                                      ],
-                                    ),
-                                  );
+                                } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                                  // Return the widget that prompts the user to add a review if there are no reviews
+                                  return _addReview(context);
                                 } else {
-                                  String reviewText = snapshot.data!.first['text'];
+                                  String? reviewText = snapshot.data!.first['text'];
+                                  if (reviewText == null || reviewText.isEmpty) {
+                                    // Return the widget that prompts the user to add a review if reviewText is null or empty
+                                    return _addReview(context);
+                                  }
+
+                                  // If review text is available, return the review content widget
                                   return Column(
                                     mainAxisAlignment: MainAxisAlignment.start,
                                     children: [
@@ -604,8 +649,8 @@ class BookDetails extends StatelessWidget {
                                         child: Text(
                                           reviewText,
                                           style: const TextStyle(
-                                              fontSize: 16,
-                                              color: Colors.grey
+                                            fontSize: 16,
+                                            color: Colors.grey,
                                           ),
                                         ),
                                       ),
@@ -634,7 +679,7 @@ class BookDetails extends StatelessWidget {
                                                     'Edytuj',
                                                     style: TextStyle(
                                                       color: Colors.white,
-                                                      fontWeight: FontWeight.bold
+                                                      fontWeight: FontWeight.bold,
                                                     ),
                                                   ),
                                                 ],
@@ -684,6 +729,7 @@ class BookDetails extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 20),
+
                 Center( //---------------------------------------------------------------------------------------------- show all reviews
                   child: GestureDetector(
                     onTap: () {
@@ -702,11 +748,11 @@ class BookDetails extends StatelessWidget {
                           ),
                         ],
                       ),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
+                      child: const Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
                         child: Row(
                           children: [
-                            const Expanded(
+                            Expanded(
                               child: Text(
                                 'Zobacz wszystkie recenzje',
                                 textAlign: TextAlign.center,
@@ -717,7 +763,7 @@ class BookDetails extends StatelessWidget {
                                 ),
                               ),
                             ),
-                            const Icon(
+                            Icon(
                               FontAwesomeIcons.chevronRight,
                               color: Colors.white,
                             ),
