@@ -4,6 +4,8 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'icon_map.dart';
+import 'book_details.dart';
+import 'widgets/background_ovals.dart';
 
 class Shelf extends StatefulWidget {
   final String shelfId;
@@ -77,16 +79,19 @@ class _ShelfState extends State<Shelf> {
     if (bookDoc.exists) {
       final bookTitle = bookDoc['title'];
       final coverImage = bookDoc['coverImage'];
+      final description = bookDoc['description'];
       final bookAuthorIds = List<String>.from(bookDoc['author']);
       List<String> authorNames = await _getAuthorNames(bookAuthorIds);
 
       int rate = await _getUserRatingForBook(bookId);
 
       return {
+        'id': bookId,
         'title': bookTitle,
         'author': authorNames,
         'rate': rate,
         'coverImage': coverImage,
+        'description': description,
       };
     }
     return null;
@@ -769,140 +774,117 @@ class BookItem extends StatelessWidget {
     final authorsList = List<String>.from(book['author'] ?? []);
     final containerHeight = 100.0 + ((authorsList.length - 1) * 20.0);
 
-    return Container(
-      width: containerWidth,
-      height: containerHeight,
-      margin: EdgeInsets.symmetric(vertical: 10),
-      decoration: ShapeDecoration(
-        color: Colors.white,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
-        ),
-        shadows: [
-          BoxShadow(
-            color: Color(0x3F000000),
-            blurRadius: 4,
-            offset: Offset(0, 4),
-            spreadRadius: 0,
+    return GestureDetector(
+      onTap: () {
+        // Przejście do nowego ekranu po kliknięciu
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => BookDetails(book: book),
           ),
-        ],
-      ),
-      child: Stack(
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: Row(
-              children: [
-                Container(
-                  width: 50,
-                  height: 75,
-                  color: Colors.grey[300],
-                  alignment: Alignment.center,
-                  child: book['coverImage'] != null && book['coverImage'].isNotEmpty
-                      ? Image.network(
-                    book['coverImage'],
-                    fit: BoxFit.cover,
-                  )
-                      : Icon(
-                    FontAwesomeIcons.book,
-                    size: 30,
-                    color: Colors.grey[700],
-                  ),
-                ),
-                SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        book['title'] ?? 'N/A',
-                        style: TextStyle(
-                          color: Colors.black,
-                          fontSize: (book['title'] != null && book['title'].length > 20) ? 14 : 20,
-                          fontFamily: 'Inter',
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      SizedBox(height: 4),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: authorsList.map((author) {
-                          return Text(
-                            author,
-                            style: TextStyle(
-                              color: Color(0xFF949494),
-                              fontSize: 16,
-                            ),
-                          );
-                        }).toList(),
-                      ),
-                      SizedBox(height: 20),
-                    ],
-                  ),
-                ),
-              ],
+        );
+      },
+      child: Container(
+        width: containerWidth,
+        height: containerHeight,
+        margin: EdgeInsets.symmetric(vertical: 10),
+        decoration: ShapeDecoration(
+          color: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+          shadows: [
+            BoxShadow(
+              color: Color(0x3F000000),
+              blurRadius: 4,
+              offset: Offset(0, 4),
+              spreadRadius: 0,
             ),
-          ),
-          if (book['rate'] != 0)
-            Positioned(
-              right: 8,
-              bottom: 8,
+          ],
+        ),
+        child: Stack(
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
               child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: List.generate(5, (index) {
-                  if (index < book['rate']) {
-                    return Icon(
-                      FontAwesomeIcons.solidStar,
-                      size: 20,
-                      color: Color(0xFFFFD700),
-                    );
-                  } else {
-                    return Icon(
-                      FontAwesomeIcons.star,
-                      size: 20,
-                      color: Color(0xFFFFD700),
-                    );
-                  }
-                }),
+                children: [
+                  Container(
+                    width: 50,
+                    height: 75,
+                    color: Colors.grey[300],
+                    alignment: Alignment.center,
+                    child: book['coverImage'] != null && book['coverImage'].isNotEmpty
+                        ? Image.network(
+                      book['coverImage'],
+                      fit: BoxFit.cover,
+                    )
+                        : Icon(
+                      FontAwesomeIcons.book,
+                      size: 30,
+                      color: Colors.grey[700],
+                    ),
+                  ),
+                  SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          book['title'] ?? 'N/A',
+                          style: TextStyle(
+                            color: Colors.black,
+                            fontSize: (book['title'] != null && book['title'].length > 20) ? 14 : 20,
+                            fontFamily: 'Inter',
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        SizedBox(height: 4),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: authorsList.map((author) {
+                            return Text(
+                              author,
+                              style: TextStyle(
+                                color: Color(0xFF949494),
+                                fontSize: 16,
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                        SizedBox(height: 20),
+                      ],
+                    ),
+                  ),
+                ],
               ),
             ),
-        ],
+            if (book['rate'] != 0)
+              Positioned(
+                right: 8,
+                bottom: 8,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: List.generate(5, (index) {
+                    if (index < book['rate']) {
+                      return Icon(
+                        FontAwesomeIcons.solidStar,
+                        size: 20,
+                        color: Color(0xFFFFD700),
+                      );
+                    } else {
+                      return Icon(
+                        FontAwesomeIcons.star,
+                        size: 20,
+                        color: Color(0xFFFFD700),
+                      );
+                    }
+                  }),
+                ),
+              ),
+          ],
+        ),
       ),
-    );
-  }
-}
-
-class BackgroundOvals extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        Positioned(
-          left: 145,
-          top: -107,
-          child: Container(
-            width: 459,
-            height: 457,
-            decoration: const ShapeDecoration(
-              color: Color(0xFF528BB9),
-              shape: OvalBorder(),
-            ),
-          ),
-        ),
-        Positioned(
-          left: -345,
-          top: -282,
-          child: Container(
-            width: 712,
-            height: 566,
-            decoration: const ShapeDecoration(
-              color: Color(0xFF3C729E),
-              shape: OvalBorder(),
-            ),
-          ),
-        ),
-      ],
     );
   }
 }
