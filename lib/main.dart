@@ -7,10 +7,10 @@ import 'package:firebase_auth/firebase_auth.dart'; // Import Firebase Auth
 import 'firebase_options.dart';
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized(); // Ensure bindings are initialized
+  WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
-  ); // Initialize Firebase
+  );
 
   // Check if user is logged in
   User? user = FirebaseAuth.instance.currentUser;

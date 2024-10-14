@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 import 'widgets/reccomendations.dart';
 import 'widgets/bottomNavBar.dart';
@@ -21,7 +22,7 @@ class _MainPageState extends State<MainPage> {
   final List<Widget> _pages = [
     Recommendations(),
     Library(),
-    Center(child: Text('Stats Page')),
+    const Center(child: Text('Stats Page')),
     Profile(),
   ];
 
@@ -41,19 +42,13 @@ class _MainPageState extends State<MainPage> {
     return Scaffold(
       backgroundColor: const Color(0xFFF9F1E5),
       resizeToAvoidBottomInset: false,
-      body: GestureDetector( // Wrap the Stack with GestureDetector
+      body: GestureDetector(
         onTap: () {
           FocusScope.of(context).unfocus(); // Dismiss the keyboard
         },
         child: Stack(
           children: [
-            BackgroundOvals(),
-            Positioned(
-              left: 0,
-              right: 0,
-              top: 60,
-              child: CustomSearchBar(controller: _searchBarController),
-            ),
+            const BackgroundOvals(),
             Positioned(
               left: 20,
               right: 20,
@@ -72,6 +67,12 @@ class _MainPageState extends State<MainPage> {
             Positioned(
               left: 0,
               right: 0,
+              top: 60,
+              child: CustomSearchBar(controller: _searchBarController),
+            ),
+            Positioned(
+              left: 0,
+              right: 0,
               bottom: -10,
               child: CustomBottomNavigationBar(
                 selectedIndex: _selectedIndex,
@@ -83,4 +84,6 @@ class _MainPageState extends State<MainPage> {
       ),
     );
   }
+
+
 }

@@ -581,10 +581,10 @@ class BookDetails extends StatelessWidget {
                                     const SizedBox(width: 10), // Use width for horizontal spacing
                                     Text(
                                       publisherName,
-                                      style: const TextStyle(
+                                      style: TextStyle(
                                         fontWeight: FontWeight.bold,
                                         color: Colors.grey,
-                                        fontSize: 16,
+                                        fontSize: publisherName.length > 20 ? 10 : 16,
                                       ),
                                     ),
                                   ],
