@@ -8,6 +8,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'dart:io';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'follow_list.dart';
 
 class Profile extends StatefulWidget {
   @override
@@ -685,6 +686,7 @@ class _ProfileState extends State<Profile> {
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final containerWidth = screenWidth * 0.88;
+    final userId = FirebaseAuth.instance.currentUser!.uid; 
 
     return SingleChildScrollView(
       child: Column(
@@ -822,7 +824,7 @@ class _ProfileState extends State<Profile> {
                             ),
                           ),
                           SizedBox(width: 8),
-                          Icon(
+                          const Icon(
                             FontAwesomeIcons.pen,
                             color: Colors.grey,
                             size: 18,
@@ -838,17 +840,32 @@ class _ProfileState extends State<Profile> {
                   left: 40,
                   child: Column(
                     children: [
-                      Text(
+                      TextButton(onPressed: 
+                      () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => FollowList(
+                              title: 'Obserwujący',
+                              userId: userId,
+                              isFollowers: true,
+                            ),
+                          ),
+                        );
+                      }, 
+                      child: Column(
+                        children: [
+                          Text(
                         followersCount != null ? followersCount.toString() : '',
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 26,
                           color: Colors.black,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
-                      SizedBox(height: 3),
-                      Text(
-                        'obserwujących',
+                      const SizedBox(height: 3),
+                      const Text(
+                        'Obserwujący',
                         style: TextStyle(
                           fontSize: 16,
                           color: Colors.black,
@@ -856,6 +873,8 @@ class _ProfileState extends State<Profile> {
                           fontFamily: 'Inter',
                         ),
                       ),
+                        ],
+                      )),
                     ],
                   ),
                 ),
@@ -864,17 +883,32 @@ class _ProfileState extends State<Profile> {
                   right: 40,
                   child: Column(
                     children: [
-                      Text(
+                      TextButton(onPressed: 
+                      () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => FollowList(
+                              title: 'Obserwowani',
+                              userId: userId,
+                              isFollowers: false,
+                            ),
+                          ),
+                        );
+                      }, 
+                      child: Column(
+                        children: [
+                          Text(
                         followingCount != null ? followingCount.toString() : '',
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 26,
                           color: Colors.black,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
-                      SizedBox(height: 3),
-                      Text(
-                        'obserwatorów',
+                      const SizedBox(height: 3),
+                      const Text(
+                        'Obserwowani',
                         style: TextStyle(
                           fontSize: 16,
                           color: Colors.black,
@@ -882,13 +916,15 @@ class _ProfileState extends State<Profile> {
                           fontFamily: 'Inter',
                         ),
                       ),
+                        ],
+                      )),
                     ],
                   ),
                 ),
               ],
             ),
           ),
-          SizedBox(height: 16),
+          const SizedBox(height: 16),
           // Zmień e-mail
           Container(
             width: containerWidth,
@@ -900,7 +936,7 @@ class _ProfileState extends State<Profile> {
                 BoxShadow(
                   color: Colors.black.withOpacity(0.1),
                   blurRadius: 10,
-                  offset: Offset(0, 4),
+                  offset: const Offset(0, 4),
                 ),
               ],
             ),
