@@ -780,7 +780,7 @@ class BookItem extends StatelessWidget {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => BookDetails(book: book),
+            builder: (context) => BookDetails(bookId: book['id']),
           ),
         );
       },
