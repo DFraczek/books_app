@@ -3,6 +3,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'widgets/background_ovals.dart';
+import 'package:intl/intl.dart';
 
 class BookDetails extends StatelessWidget {
   final String bookId;
@@ -19,17 +20,23 @@ class BookDetails extends StatelessWidget {
   }
 
   Future<Map<String, dynamic>?> _getBookData(String bookId) async {
-    final bookDoc =
-    await FirebaseFirestore.instance.collection('book').doc(bookId).get();
+    final bookDoc = await FirebaseFirestore.instance.collection('book').doc(bookId).get();
 
     if (bookDoc.exists) {
       final bookTitle = bookDoc['title'];
       final coverImage = bookDoc['coverImage'];
       final description = bookDoc['description'];
+
+      final Timestamp publicationTimestamp = bookDoc['publicationDate'];
+      // Format the date as dd.MM.yyyy
+      final String publicationDate = DateFormat('dd.MM.yyyy').format(publicationTimestamp.toDate());
+
       final bookAuthorIds = List<String>.from(bookDoc['author']);
       List<String> authorNames = await _getAuthorNames(bookAuthorIds);
       final bookGenreIds = List<String>.from(bookDoc['genre']);
       List<String> genreNames = await _getGenres(bookGenreIds);
+      final bookPublisherId = bookDoc['publisher'];
+      String publisherName = await _getPublisherName(bookPublisherId);
 
       int rate = await _getUserRatingForBook(bookId);
 
@@ -41,6 +48,8 @@ class BookDetails extends StatelessWidget {
         'rate': rate,
         'coverImage': coverImage,
         'description': description,
+        'publisher': publisherName,
+        'publicationDate': publicationDate,
       };
     }
     return null;
@@ -86,6 +95,22 @@ class BookDetails extends StatelessWidget {
 
     return genreNames;
   }
+
+  Future<String> _getPublisherName(String publisherId) async {
+    String publisherName = "Brak danych";
+
+    final publisherDoc = await FirebaseFirestore.instance
+        .collection('publisher')
+        .doc(publisherId)
+        .get();
+
+    if (publisherDoc.exists && publisherDoc['name'] != null) {
+      publisherName = publisherDoc['name'];
+    }
+
+    return publisherName;
+  }
+
 
   Future<int> _getUserRatingForBook(String bookId) async {
     const storage = FlutterSecureStorage();
@@ -330,6 +355,8 @@ class BookDetails extends StatelessWidget {
                 final String author = (bookData['author'] as List<dynamic>).join(', ');
                 final String genre = (bookData['genre'] as List<dynamic>).join(', ');
                 final String? coverImage = bookData['coverImage'];
+                final String publisherName = bookData['publisher'];
+                final String? publicationDate = bookData['publicationDate'];
                 final String description = bookData['description'] ?? 'Brak opisu';
 
 
@@ -517,6 +544,78 @@ class BookDetails extends StatelessWidget {
                               ],
                             ),
                           ),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      //---------------------------------------------------------------------------------------------- publisher section
+                      Center(
+                        child: Container(
+                          width: containerWidth,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(20),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.1),
+                                blurRadius: 10,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(20.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start, // Aligns text to the start
+                              children: [
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    const Text(
+                                      'Wydawca:',
+                                      style: TextStyle(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFF3C729E),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 10), // Use width for horizontal spacing
+                                    Text(
+                                      publisherName,
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.grey,
+                                        fontSize: 16,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 20), // Add some space between rows
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    const Text(
+                                      'Data wydania:',
+                                      style: TextStyle(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFF3C729E),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 10),
+                                    Text(
+                                      publicationDate ?? "brak danych",
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.grey,
+                                        fontSize: 16,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+
                         ),
                       ),
                       const SizedBox(height: 20),
