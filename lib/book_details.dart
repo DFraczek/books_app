@@ -4,6 +4,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'widgets/background_ovals.dart';
 import 'package:intl/intl.dart';
+import 'add_book_to_shelf_page.dart';
 
 class BookDetails extends StatelessWidget {
   final String bookId;
@@ -20,7 +21,8 @@ class BookDetails extends StatelessWidget {
   }
 
   Future<Map<String, dynamic>?> _getBookData(String bookId) async {
-    final bookDoc = await FirebaseFirestore.instance.collection('book').doc(bookId).get();
+    final bookDoc =
+        await FirebaseFirestore.instance.collection('book').doc(bookId).get();
 
     if (bookDoc.exists) {
       final bookTitle = bookDoc['title'];
@@ -29,7 +31,8 @@ class BookDetails extends StatelessWidget {
 
       final Timestamp publicationTimestamp = bookDoc['publicationDate'];
       // Format the date as dd.MM.yyyy
-      final String publicationDate = DateFormat('dd.MM.yyyy').format(publicationTimestamp.toDate());
+      final String publicationDate =
+          DateFormat('dd.MM.yyyy').format(publicationTimestamp.toDate());
 
       final bookAuthorIds = List<String>.from(bookDoc['author']);
       List<String> authorNames = await _getAuthorNames(bookAuthorIds);
@@ -71,7 +74,7 @@ class BookDetails extends StatelessWidget {
       }
     }
 
-    if(authorNames.isEmpty) authorNames.add("Nieznany");
+    if (authorNames.isEmpty) authorNames.add("Nieznany");
 
     return authorNames;
   }
@@ -91,7 +94,7 @@ class BookDetails extends StatelessWidget {
       }
     }
 
-    if(genreNames.isEmpty) genreNames.add("Brak danych");
+    if (genreNames.isEmpty) genreNames.add("Brak danych");
 
     return genreNames;
   }
@@ -110,7 +113,6 @@ class BookDetails extends StatelessWidget {
 
     return publisherName;
   }
-
 
   Future<int> _getUserRatingForBook(String bookId) async {
     const storage = FlutterSecureStorage();
@@ -156,20 +158,23 @@ class BookDetails extends StatelessWidget {
     };
   }
 
-
   Future<List<String>> _fetchShelfNamesWithBook(String bookId) async {
     String? userId = await storage.read(key: 'user_id');
     if (userId == null) {
       return [];
     }
 
-    DocumentSnapshot userDoc = await FirebaseFirestore.instance.collection('user').doc(userId).get();
+    DocumentSnapshot userDoc =
+        await FirebaseFirestore.instance.collection('user').doc(userId).get();
 
     List<dynamic> bookshelves = userDoc['bookshelves'] ?? [];
     //szukanie półek na których jest dana książka
     List<String> shelfNames = [];
     for (String shelfId in bookshelves) {
-      DocumentSnapshot shelfDoc = await FirebaseFirestore.instance.collection('shelf').doc(shelfId).get();
+      DocumentSnapshot shelfDoc = await FirebaseFirestore.instance
+          .collection('shelf')
+          .doc(shelfId)
+          .get();
       List<dynamic> books = shelfDoc['books'] ?? [];
       if (books.contains(bookId)) {
         shelfNames.add(shelfDoc['name']);
@@ -237,7 +242,7 @@ class BookDetails extends StatelessWidget {
     );
   }
 
-  Widget _addReview(BuildContext context){
+  Widget _addReview(BuildContext context) {
     return GestureDetector(
       onTap: () {
         // TODO: Add review implementation
@@ -326,7 +331,48 @@ class BookDetails extends StatelessWidget {
     });
   }
 
+  //do dodawania ksiazki na polke (w trakcie roboty)
+  Future<List<Map<String, dynamic>>> _fetchUserShelves() async {
+    String? userId = await storage.read(key: 'user_id');
+    if (userId == null) {
+      return [];
+    }
 
+    DocumentSnapshot userDoc =
+        await FirebaseFirestore.instance.collection('user').doc(userId).get();
+
+    List<dynamic> bookshelves = userDoc['bookshelves'] ?? [];
+    List<Map<String, dynamic>> shelves = [];
+
+    for (var shelfId in bookshelves) {
+      final shelfDoc = await FirebaseFirestore.instance
+          .collection('shelf')
+          .doc(shelfId)
+          .get();
+      if (shelfDoc.exists) {
+        shelves.add({
+          'id': shelfId,
+          'name': shelfDoc['name'],
+          'containsBook': (shelfDoc['books'] as List<dynamic>).contains(bookId),
+        });
+      }
+    }
+
+    return shelves;
+  }
+
+  Future<List<String>> _fetchUserShelfIds() async {
+    String? userId = await storage.read(key: 'user_id');
+    if (userId == null) {
+      return [];
+    }
+
+    DocumentSnapshot userDoc =
+        await FirebaseFirestore.instance.collection('user').doc(userId).get();
+
+    List<dynamic> bookshelves = userDoc['bookshelves'] ?? [];
+    return bookshelves.cast<String>();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -340,7 +386,8 @@ class BookDetails extends StatelessWidget {
         children: [
           const BackgroundOvals(),
           FutureBuilder<Map<String, dynamic>?>(
-              future: _getBookData(bookId), // Fetch the book data using the bookId
+              future:
+                  _getBookData(bookId), // Fetch the book data using the bookId
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
@@ -352,13 +399,15 @@ class BookDetails extends StatelessWidget {
 
                 final bookData = snapshot.data!;
                 final String title = bookData['title'] ?? 'Brak tytułu';
-                final String author = (bookData['author'] as List<dynamic>).join(', ');
-                final String genre = (bookData['genre'] as List<dynamic>).join(', ');
+                final String author =
+                    (bookData['author'] as List<dynamic>).join(', ');
+                final String genre =
+                    (bookData['genre'] as List<dynamic>).join(', ');
                 final String? coverImage = bookData['coverImage'];
                 final String publisherName = bookData['publisher'];
                 final String? publicationDate = bookData['publicationDate'];
-                final String description = bookData['description'] ?? 'Brak opisu';
-
+                final String description =
+                    bookData['description'] ?? 'Brak opisu';
 
                 return SingleChildScrollView(
                   padding: const EdgeInsets.all(16.0),
@@ -388,27 +437,28 @@ class BookDetails extends StatelessWidget {
                               const SizedBox(height: 30),
                               coverImage != null && coverImage.isNotEmpty
                                   ? Container(
-                                decoration: BoxDecoration(
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black.withOpacity(0.2),
-                                      blurRadius: 10,
-                                      offset: const Offset(0, 4),
-                                    ),
-                                  ],
-                                ),
-                                child: Image.network(
-                                  coverImage,
-                                  fit: BoxFit.cover,
-                                  width: 120,
-                                  height: 180,
-                                ),
-                              )
+                                      decoration: BoxDecoration(
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color:
+                                                Colors.black.withOpacity(0.2),
+                                            blurRadius: 10,
+                                            offset: const Offset(0, 4),
+                                          ),
+                                        ],
+                                      ),
+                                      child: Image.network(
+                                        coverImage,
+                                        fit: BoxFit.cover,
+                                        width: 120,
+                                        height: 180,
+                                      ),
+                                    )
                                   : Icon(
-                                FontAwesomeIcons.book,
-                                size: 50,
-                                color: Colors.grey[700],
-                              ),
+                                      FontAwesomeIcons.book,
+                                      size: 50,
+                                      color: Colors.grey[700],
+                                    ),
                               const SizedBox(height: 10),
                               Text(
                                 title,
@@ -434,16 +484,17 @@ class BookDetails extends StatelessWidget {
                                     return const CircularProgressIndicator();
                                   } else if (snapshot.hasError) {
                                     return Text('Błąd: ${snapshot.error}');
-                                  } else
-                                  if (!snapshot.hasData || snapshot.data!['count'] == 0) {
+                                  } else if (!snapshot.hasData ||
+                                      snapshot.data!['count'] == 0) {
                                     return const Text('Brak ocen książki');
                                   } else {
-                                    final double averageRating = snapshot
-                                        .data!['averageRating'];
+                                    final double averageRating =
+                                        snapshot.data!['averageRating'];
                                     final int count = snapshot.data!['count'];
 
                                     return Row(
-                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
                                       children: [
                                         ..._buildStarRating(averageRating),
                                         const SizedBox(width: 10),
@@ -461,7 +512,8 @@ class BookDetails extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: 20),
-                      Center( //---------------------------------------------------------------------------------------------- description section
+                      Center(
+                        //---------------------------------------------------------------------------------------------- description section
                         child: Container(
                           width: containerWidth,
                           decoration: BoxDecoration(
@@ -489,13 +541,12 @@ class BookDetails extends StatelessWidget {
                               ),
                               const SizedBox(height: 10),
                               Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 20.0),
                                 child: Text(
                                   description,
                                   style: const TextStyle(
-                                      fontSize: 16,
-                                      color: Colors.grey
-                                  ),
+                                      fontSize: 16, color: Colors.grey),
                                 ),
                               ),
                               const SizedBox(height: 10),
@@ -533,14 +584,12 @@ class BookDetails extends StatelessWidget {
                                   ),
                                 ),
                                 const SizedBox(height: 10),
-                                Text(
-                                  genre,
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.grey,
-                                    fontSize: 16,
-                                  )
-                                ),
+                                Text(genre,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.grey,
+                                      fontSize: 16,
+                                    )),
                               ],
                             ),
                           ),
@@ -565,10 +614,12 @@ class BookDetails extends StatelessWidget {
                           child: Padding(
                             padding: const EdgeInsets.all(20.0),
                             child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start, // Aligns text to the start
+                              crossAxisAlignment: CrossAxisAlignment
+                                  .start, // Aligns text to the start
                               children: [
                                 Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
                                   children: [
                                     const Text(
                                       'Wydawca:',
@@ -578,20 +629,25 @@ class BookDetails extends StatelessWidget {
                                         color: Color(0xFF3C729E),
                                       ),
                                     ),
-                                    const SizedBox(width: 10), // Use width for horizontal spacing
+                                    const SizedBox(
+                                        width:
+                                            10), // Use width for horizontal spacing
                                     Text(
                                       publisherName,
                                       style: TextStyle(
                                         fontWeight: FontWeight.bold,
                                         color: Colors.grey,
-                                        fontSize: publisherName.length > 20 ? 10 : 16,
+                                        fontSize:
+                                            publisherName.length > 20 ? 10 : 16,
                                       ),
                                     ),
                                   ],
                                 ),
-                                const SizedBox(height: 20), // Add some space between rows
+                                const SizedBox(
+                                    height: 20), // Add some space between rows
                                 Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
                                   children: [
                                     const Text(
                                       'Data wydania:',
@@ -615,21 +671,24 @@ class BookDetails extends StatelessWidget {
                               ],
                             ),
                           ),
-
                         ),
                       ),
                       const SizedBox(height: 20),
-                      Center( //--------------------------------------------------------------------------------------shelves section
+                      Center(
+                        //--------------------------------------------------------------------------------------shelves section
                         child: FutureBuilder<List<String>>(
                           future: _fetchShelfNamesWithBook(bookId),
                           builder: (context, snapshot) {
-                            if (snapshot.connectionState == ConnectionState.waiting) {
+                            if (snapshot.connectionState ==
+                                ConnectionState.waiting) {
                               return const CircularProgressIndicator();
                             } else if (snapshot.hasError) {
                               return Text('Błąd: ${snapshot.error}');
-                            } else if (!snapshot.hasData || snapshot.data!
-                                .isEmpty) { //jeżeli książka nie jest dodana na żadną półkę użytkownika
-                              return Center( // Center the container within its parent
+                            } else if (!snapshot.hasData ||
+                                snapshot.data!.isEmpty) {
+                              //jeżeli książka nie jest dodana na żadną półkę użytkownika
+                              return Center(
+                                // Center the container within its parent
                                 child: GestureDetector(
                                   onTap: () {
                                     // TODO: Add book to shelf implementation
@@ -647,22 +706,28 @@ class BookDetails extends StatelessWidget {
                                         ),
                                       ],
                                     ),
-                                    child: const Padding(
-                                      padding: EdgeInsets.all(20.0),
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(20.0),
                                       child: Row(
-                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
                                         children: [
-                                          Text(
-                                            'Dodaj książkę na półkę',
-                                            style: TextStyle(
-                                              fontSize: 20,
-                                              fontWeight: FontWeight.bold,
-                                              color: Colors.grey,
-                                            ),
-                                          ),
-                                          Icon(
-                                            FontAwesomeIcons.chevronRight,
-                                            color: Colors.grey,
+                                          ElevatedButton(
+                                            onPressed: () async {
+                                              List<String> shelfIds =
+                                                  await _fetchUserShelfIds();
+                                              Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                  builder: (context) =>
+                                                      AddBookToShelfPage(
+                                                    shelfIds: shelfIds,
+                                                    bookId: bookId,
+                                                  ),
+                                                ),
+                                              );
+                                            },
+                                            child: Text('Dodaj na półkę'),
                                           ),
                                         ],
                                       ),
@@ -670,7 +735,8 @@ class BookDetails extends StatelessWidget {
                                   ),
                                 ),
                               );
-                            } else { // gdy książka jest dodana na jakąś półkę użytkownika
+                            } else {
+                              // gdy książka jest dodana na jakąś półkę użytkownika
                               return GestureDetector(
                                 onTap: () {
                                   // TODO: Remove book from shelf/change shelf implementation
@@ -706,22 +772,22 @@ class BookDetails extends StatelessWidget {
                                         ),
                                         const SizedBox(height: 10),
                                         Row(
-                                          mainAxisAlignment: MainAxisAlignment
-                                              .spaceBetween,
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
                                           children: [
                                             Expanded(
                                               child: Column(
-                                                crossAxisAlignment: CrossAxisAlignment
-                                                    .start,
-                                                children: snapshot.data!.map<Widget>((
-                                                    shelfName) {
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: snapshot.data!
+                                                    .map<Widget>((shelfName) {
                                                   return Text(
                                                     shelfName,
                                                     style: const TextStyle(
                                                         fontSize: 16,
                                                         color: Colors.grey,
-                                                        fontWeight: FontWeight.bold
-                                                    ),
+                                                        fontWeight:
+                                                            FontWeight.bold),
                                                   );
                                                 }).toList(),
                                               ),
@@ -767,7 +833,8 @@ class BookDetails extends StatelessWidget {
                               children: [
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       FutureBuilder<List<Map<String, dynamic>>>(
                                         future: _fetchBookReviews(bookId),
@@ -776,15 +843,16 @@ class BookDetails extends StatelessWidget {
                                               ConnectionState.waiting) {
                                             return const CircularProgressIndicator();
                                           } else if (snapshot.hasError) {
-                                            return Text('Błąd: ${snapshot.error}');
+                                            return Text(
+                                                'Błąd: ${snapshot.error}');
                                           } else if (!snapshot.hasData ||
                                               snapshot.data!.isEmpty) {
                                             // If the user has not rated the book
                                             return _addRate(context);
                                           } else {
                                             // If the user has rated the book
-                                            Map<String, dynamic> review = snapshot.data!
-                                                .first;
+                                            Map<String, dynamic> review =
+                                                snapshot.data!.first;
                                             // Check if 'rate' is null
                                             if (review['rate'] == null) {
                                               return _addRate(context);
@@ -793,8 +861,8 @@ class BookDetails extends StatelessWidget {
                                             // If rate is not null
                                             int rate = review['rate'] ??
                                                 0; // Default to 0 if null
-                                            List<Widget> stars = List.generate(
-                                                5, (index) {
+                                            List<Widget> stars =
+                                                List.generate(5, (index) {
                                               return Icon(
                                                 index < rate
                                                     ? FontAwesomeIcons.solidStar
@@ -808,28 +876,34 @@ class BookDetails extends StatelessWidget {
                                                 // TODO: Add change/delete rate function
                                               },
                                               child: Row(
-                                                mainAxisAlignment: MainAxisAlignment
-                                                    .spaceBetween,
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment
+                                                        .spaceBetween,
                                                 children: [
                                                   Expanded(
                                                     child: Row(
-                                                      crossAxisAlignment: CrossAxisAlignment
-                                                          .start,
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .start,
                                                       children: [
                                                         Row(
-                                                          crossAxisAlignment: CrossAxisAlignment
-                                                              .start,
+                                                          crossAxisAlignment:
+                                                              CrossAxisAlignment
+                                                                  .start,
                                                           children: [
                                                             const Text(
                                                               'Moja ocena: ',
                                                               style: TextStyle(
-                                                                color: Color(0xFF3C729E),
-                                                                fontWeight: FontWeight
-                                                                    .bold,
+                                                                color: Color(
+                                                                    0xFF3C729E),
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .bold,
                                                                 fontSize: 20,
                                                               ),
                                                             ),
-                                                            const SizedBox(width: 10),
+                                                            const SizedBox(
+                                                                width: 10),
                                                             Row(
                                                               children: stars,
                                                             ),
@@ -880,7 +954,8 @@ class BookDetails extends StatelessWidget {
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Expanded(
-                                  child: FutureBuilder<List<Map<String, dynamic>>>(
+                                  child:
+                                      FutureBuilder<List<Map<String, dynamic>>>(
                                     future: _fetchBookReviews(bookId),
                                     builder: (context, snapshot) {
                                       if (snapshot.connectionState ==
@@ -889,21 +964,25 @@ class BookDetails extends StatelessWidget {
                                             child: CircularProgressIndicator());
                                       } else if (snapshot.hasError) {
                                         return Center(
-                                            child: Text('Błąd: ${snapshot.error}'));
-                                      } else
-                                      if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                                            child: Text(
+                                                'Błąd: ${snapshot.error}'));
+                                      } else if (!snapshot.hasData ||
+                                          snapshot.data!.isEmpty) {
                                         // Return the widget that prompts the user to add a review if there are no reviews
                                         return _addReview(context);
                                       } else {
-                                        String? reviewText = snapshot.data!.first['text'];
-                                        if (reviewText == null || reviewText.isEmpty) {
+                                        String? reviewText =
+                                            snapshot.data!.first['text'];
+                                        if (reviewText == null ||
+                                            reviewText.isEmpty) {
                                           // Return the widget that prompts the user to add a review if reviewText is null or empty
                                           return _addReview(context);
                                         }
 
                                         // If review text is available, return the review content widget
                                         return Column(
-                                          mainAxisAlignment: MainAxisAlignment.start,
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.start,
                                           children: [
                                             const Center(
                                               child: Text(
@@ -917,8 +996,9 @@ class BookDetails extends StatelessWidget {
                                             ),
                                             const SizedBox(height: 10),
                                             Padding(
-                                              padding: const EdgeInsets.symmetric(
-                                                  horizontal: 20.0),
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                      horizontal: 20.0),
                                               child: Text(
                                                 reviewText,
                                                 style: const TextStyle(
@@ -929,19 +1009,24 @@ class BookDetails extends StatelessWidget {
                                             ),
                                             const SizedBox(height: 20),
                                             Row(
-                                              mainAxisAlignment: MainAxisAlignment.end,
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.end,
                                               children: [
                                                 GestureDetector(
                                                   onTap: () {
                                                     // TODO: Add edit review functionality
                                                   },
                                                   child: Container(
-                                                    padding: const EdgeInsets.symmetric(
-                                                        horizontal: 12, vertical: 8),
+                                                    padding: const EdgeInsets
+                                                        .symmetric(
+                                                        horizontal: 12,
+                                                        vertical: 8),
                                                     decoration: BoxDecoration(
-                                                      color: const Color(0xFF3C729E),
-                                                      borderRadius: BorderRadius.circular(
-                                                          15),
+                                                      color: const Color(
+                                                          0xFF3C729E),
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              15),
                                                     ),
                                                     child: const Row(
                                                       children: [
@@ -954,7 +1039,8 @@ class BookDetails extends StatelessWidget {
                                                           'Edytuj',
                                                           style: TextStyle(
                                                             color: Colors.white,
-                                                            fontWeight: FontWeight.bold,
+                                                            fontWeight:
+                                                                FontWeight.bold,
                                                           ),
                                                         ),
                                                       ],
@@ -967,17 +1053,22 @@ class BookDetails extends StatelessWidget {
                                                     // TODO: Add delete review functionality
                                                   },
                                                   child: Container(
-                                                    padding: const EdgeInsets.symmetric(
-                                                        horizontal: 12, vertical: 8),
+                                                    padding: const EdgeInsets
+                                                        .symmetric(
+                                                        horizontal: 12,
+                                                        vertical: 8),
                                                     decoration: BoxDecoration(
-                                                      color: const Color(0xFF3C729E),
-                                                      borderRadius: BorderRadius.circular(
-                                                          15),
+                                                      color: const Color(
+                                                          0xFF3C729E),
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              15),
                                                     ),
                                                     child: const Row(
                                                       children: [
                                                         Icon(
-                                                          FontAwesomeIcons.trash,
+                                                          FontAwesomeIcons
+                                                              .trash,
                                                           color: Colors.white,
                                                         ),
                                                         SizedBox(width: 7),
@@ -985,7 +1076,8 @@ class BookDetails extends StatelessWidget {
                                                           'Usuń',
                                                           style: TextStyle(
                                                             color: Colors.white,
-                                                            fontWeight: FontWeight.bold,
+                                                            fontWeight:
+                                                                FontWeight.bold,
                                                           ),
                                                         ),
                                                       ],
@@ -1007,7 +1099,8 @@ class BookDetails extends StatelessWidget {
                       ),
                       const SizedBox(height: 20),
 
-                      Center( //---------------------------------------------------------------------------------------------- show all reviews
+                      Center(
+                        //---------------------------------------------------------------------------------------------- show all reviews
                         child: GestureDetector(
                           onTap: () {
                             // TODO: Add functionality to show all reviews
@@ -1055,9 +1148,9 @@ class BookDetails extends StatelessWidget {
                     ],
                   ),
                 );
-              })],
+              })
+        ],
       ),
     );
   }
 }
-
