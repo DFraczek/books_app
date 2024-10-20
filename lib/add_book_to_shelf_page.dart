@@ -52,7 +52,7 @@ class _AddBookToShelfPageState extends State<AddBookToShelfPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Select Shelf'),
+        title: Text('Wybierz półkę'),
       ),
       body: Stack(children: [
         BackgroundOvals(),
