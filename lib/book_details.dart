@@ -712,7 +712,7 @@ class BookDetails extends StatelessWidget {
                                         mainAxisAlignment:
                                             MainAxisAlignment.spaceBetween,
                                         children: [
-                                          ElevatedButton(
+                                          TextButton(
                                             onPressed: () async {
                                               List<String> shelfIds =
                                                   await _fetchUserShelfIds();
@@ -727,7 +727,24 @@ class BookDetails extends StatelessWidget {
                                                 ),
                                               );
                                             },
-                                            child: Text('Dodaj na półkę'),
+                                            child: const Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                Text(
+                                                  'Dodaj na półkę',
+                                                  style: TextStyle(
+                                                    fontSize: 20,
+                                                    fontWeight: FontWeight.bold,
+                                                    color: Colors.grey,
+                                                  ),
+                                                ),
+                                                //Do poprawy aby ikona była na końcu przycisku
+                                                Icon(
+                                                  FontAwesomeIcons.chevronRight,
+                                                  color: Colors.grey,
+                                                ),
+                                              ],
+                                            ),
                                           ),
                                         ],
                                       ),
