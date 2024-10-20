@@ -63,14 +63,32 @@ class _AddBookToShelfPageState extends State<AddBookToShelfPage> {
             itemCount: shelves.length,
             itemBuilder: (context, index) {
               final shelf = shelves[index];
-              return ListTile(
-                title: Text(shelf['name']),
-                trailing: shelf['containsBook']
-                    ? const Icon(Icons.check, color: Colors.green)
-                    : ElevatedButton(
-                        onPressed: () => _addBookToShelf(shelf['id']),
-                        child: const Text('Add'),
-                      ),
+              return Container(
+                margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+                padding: const EdgeInsets.all(16.0),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20.0),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Colors.black26,
+                      blurRadius: 4.0,
+                      offset: Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: ListTile(
+                  title: Text(
+                    shelf['name'],
+                    style: const TextStyle(fontSize: 20),
+                  ),
+                  trailing: shelf['containsBook']
+                      ? const Icon(Icons.check, color: Colors.green)
+                      : ElevatedButton(
+                          onPressed: () => _addBookToShelf(shelf['id']),
+                          child: const Text('Add'),
+                        ),
+                ),
               );
             },
           ),
