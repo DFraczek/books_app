@@ -10,10 +10,10 @@ class Library extends StatefulWidget {
   const Library({super.key});
 
   @override
-  _LibraryState createState() => _LibraryState();
+  LibraryState createState() => LibraryState();
 }
 
-class _LibraryState extends State<Library> {
+class LibraryState extends State<Library> {
   List<DocumentSnapshot> _shelves = [];
   bool _isLoading = true;
 

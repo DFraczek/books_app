@@ -13,10 +13,10 @@ class Shelf extends StatefulWidget {
   const Shelf({super.key, required this.shelfId});
 
   @override
-  _ShelfState createState() => _ShelfState();
+  ShelfState createState() => ShelfState();
 }
 
-class _ShelfState extends State<Shelf> {
+class ShelfState extends State<Shelf> {
   List<Map<String, dynamic>> _books = [];
   bool _isLoading = true;
   String _shelfName = "";
@@ -29,6 +29,10 @@ class _ShelfState extends State<Shelf> {
   }
 
   Future<void> _loadBooks() async {
+    setState(() {
+      _isLoading = true;
+    });
+
     try {
       final shelfDoc = await _getShelfDocument(widget.shelfId);
 
@@ -49,20 +53,36 @@ class _ShelfState extends State<Shelf> {
 
         setState(() {
           _books = bookDetails;
+          _shelfName = shelfDoc['name'];
+          _numberOfBooks = books.length;
           _isLoading = false;
         });
       } else {
-        print("Shelf does not exist");
         setState(() {
           _isLoading = false;
         });
       }
     } catch (e) {
-      print("Error loading books: $e");
       setState(() {
         _isLoading = false;
       });
     }
+  }
+
+  Future<void> _removeBookFromShelf(String bookId) async {
+    try {
+      // Remove book from the specified shelf in Firestore
+      await FirebaseFirestore.instance
+          .collection('shelf')
+          .doc(widget.shelfId)
+          .update({
+        'books': FieldValue.arrayRemove([bookId]),
+      });
+
+      // Update state to remove book from the list
+      await _loadBooks();
+      // ignore: empty_catches
+    } catch (e) {}
   }
 
   Future<DocumentSnapshot> _getShelfDocument(String shelfId) async {
@@ -142,21 +162,27 @@ class _ShelfState extends State<Shelf> {
       await shelfRef.update({
         'name': newName,
       });
-
-    // ignore: empty_catches
-    } catch (e) {}
+    } catch (e) {
+      throw Exception('Failed to update shelf name');
+    }
   }
 
-  Future<void> _updateShelfIcon(String shelfId, String icon, Color color) async {
+  Future<void> _updateShelfIcon(
+      String shelfId, String icon, Color color) async {
     try {
       final shelfRef =
-      FirebaseFirestore.instance.collection('shelf').doc(shelfId);
+          FirebaseFirestore.instance.collection('shelf').doc(shelfId);
 
       await shelfRef.update({
-        'icon': [{'color': '0x${color.value.toRadixString(16).toUpperCase()}', 'name': icon}],
+        'icon': [
+          {
+            'color': '0x${color.value.toRadixString(16).toUpperCase()}',
+            'name': icon
+          }
+        ],
       });
 
-    // ignore: empty_catches
+      // ignore: empty_catches
     } catch (e) {}
   }
 
@@ -173,7 +199,8 @@ class _ShelfState extends State<Shelf> {
               builder: (context, constraints) {
                 // Calculate available height minus padding for keyboard
                 double availableHeight = constraints.maxHeight;
-                double keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
+                double keyboardHeight =
+                    MediaQuery.of(context).viewInsets.bottom;
                 double dialogHeight = availableHeight - keyboardHeight;
 
                 return AlertDialog(
@@ -182,7 +209,8 @@ class _ShelfState extends State<Shelf> {
                   contentPadding: const EdgeInsets.all(16),
                   content: ConstrainedBox(
                     constraints: BoxConstraints(
-                      maxHeight: dialogHeight * 0.6, // Adjust height ratio as needed
+                      maxHeight:
+                          dialogHeight * 0.6, // Adjust height ratio as needed
                     ),
                     child: SingleChildScrollView(
                       child: Column(
@@ -194,7 +222,8 @@ class _ShelfState extends State<Shelf> {
                             controller: controller,
                             decoration: InputDecoration(
                               hintText: 'Wpisz nazwę półki',
-                              errorText: errorMessage.isNotEmpty ? errorMessage : null,
+                              errorText:
+                                  errorMessage.isNotEmpty ? errorMessage : null,
                             ),
                           ),
                           const SizedBox(height: 8),
@@ -207,20 +236,24 @@ class _ShelfState extends State<Shelf> {
 
                                   if (newShelfName.isEmpty) {
                                     setState(() {
-                                      errorMessage = 'Nazwa nie może być pusta.';
+                                      errorMessage =
+                                          'Nazwa nie może być pusta.';
                                     });
                                     return;
                                   }
 
-                                  if (!RegExp(r'^[a-zA-Z]+$').hasMatch(newShelfName)) {
+                                  if (!RegExp(r'^[a-zA-Z]+$')
+                                      .hasMatch(newShelfName)) {
                                     setState(() {
-                                      errorMessage = 'Nazwa może składać się tylko z liter.';
+                                      errorMessage =
+                                          'Nazwa może składać się tylko z liter.';
                                     });
                                     return;
                                   }
 
                                   const storage = FlutterSecureStorage();
-                                  final userId = await storage.read(key: 'user_id');
+                                  final userId =
+                                      await storage.read(key: 'user_id');
 
                                   if (userId == null) {
                                     Navigator.of(context).pop();
@@ -228,32 +261,38 @@ class _ShelfState extends State<Shelf> {
                                   }
 
                                   // Fetch all shelves first
-                                  final userDoc = await FirebaseFirestore.instance
+                                  final userDoc = await FirebaseFirestore
+                                      .instance
                                       .collection('user')
                                       .doc(userId)
                                       .get();
-                                  final bookshelvesIds =
-                                  List<String>.from(userDoc['bookshelves'] ?? []);
+                                  final bookshelvesIds = List<String>.from(
+                                      userDoc['bookshelves'] ?? []);
 
-                                  final shelvesQuery = await FirebaseFirestore.instance
+                                  final shelvesQuery = await FirebaseFirestore
+                                      .instance
                                       .collection('shelf')
-                                      .where(FieldPath.documentId, whereIn: bookshelvesIds)
+                                      .where(FieldPath.documentId,
+                                          whereIn: bookshelvesIds)
                                       .get();
                                   final existingShelves = shelvesQuery.docs;
 
-                                  bool isDuplicate = existingShelves.any((shelf) {
+                                  bool isDuplicate =
+                                      existingShelves.any((shelf) {
                                     return (shelf.data())['name'] ==
                                         newShelfName;
                                   });
 
                                   if (isDuplicate) {
                                     setState(() {
-                                      errorMessage = 'Półka o tej nazwie już istnieje.';
+                                      errorMessage =
+                                          'Półka o tej nazwie już istnieje.';
                                     });
                                     return;
                                   }
 
-                                  _updateShelfName(widget.shelfId, newShelfName);
+                                  _updateShelfName(
+                                      widget.shelfId, newShelfName);
 
                                   Navigator.of(context).pop();
                                   _loadBooks();
@@ -305,15 +344,17 @@ class _ShelfState extends State<Shelf> {
       await userRef.update({
         'bookshelves': FieldValue.arrayRemove([widget.shelfId]),
       });
-    // ignore: empty_catches
-    } catch (e) {}
+    } catch (e) {
+      throw Exception('Failed to remove shelf from user');
+    }
 
     try {
       final shelfRef =
           FirebaseFirestore.instance.collection('shelf').doc(shelfId);
       await shelfRef.delete();
-    // ignore: empty_catches
-    } catch (e) {}
+    } catch (e) {
+      throw Exception('Failed to delete shelf');
+    }
   }
 
   void _showRemoveShelfDialog() {
@@ -388,9 +429,10 @@ class _ShelfState extends State<Shelf> {
                 await shelfRef.update({
                   'visibility': newVisibility,
                 });
-                Navigator.of(context).pop();
-              // ignore: empty_catches
-              } catch (e) {}
+                if (context.mounted) Navigator.of(context).pop();
+              } catch (e) {
+                throw Exception('Failed to update shelf visibility');
+              }
             },
           ),
         );
@@ -432,7 +474,8 @@ class _ShelfState extends State<Shelf> {
                             .get(),
                         builder: (context, snapshot) {
                           if (!snapshot.hasData) {
-                            return const Center(child: CircularProgressIndicator());
+                            return const Center(
+                                child: CircularProgressIndicator());
                           }
                           final icons = snapshot.data!.docs;
                           return DropdownButton<String>(
@@ -487,7 +530,7 @@ class _ShelfState extends State<Shelf> {
                                     child: const Text(
                                       'Gotowe',
                                       style:
-                                      TextStyle(color: Color(0xFF3C729E)),
+                                          TextStyle(color: Color(0xFF3C729E)),
                                     ),
                                     onPressed: () {
                                       Navigator.pop(context, true);
@@ -517,7 +560,8 @@ class _ShelfState extends State<Shelf> {
                         children: [
                           TextButton(
                             onPressed: () async {
-                              _updateShelfIcon(widget.shelfId, selectedIconId, selectedColor);
+                              _updateShelfIcon(widget.shelfId, selectedIconId,
+                                  selectedColor);
                               Navigator.pop(context, true);
                             },
                             style: TextButton.styleFrom(
@@ -571,10 +615,10 @@ class _ShelfState extends State<Shelf> {
           onSelected: (value) {
             switch (value) {
               case 0:
-              // Implement search action
+                // Implement search action
                 break;
               case 1:
-              // 2nd implementation
+                // 2nd implementation
                 break;
             }
           },
@@ -592,7 +636,6 @@ class _ShelfState extends State<Shelf> {
         //----------------------------------------------settings menu
         FutureBuilder<DocumentSnapshot>(
           future: _getShelfDocument(widget.shelfId),
-
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const CircularProgressIndicator();
@@ -634,7 +677,8 @@ class _ShelfState extends State<Shelf> {
                     value: 0,
                     child: Row(
                       children: [
-                        FaIcon(FontAwesomeIcons.icons, color: Color(0xFF3C729E)),
+                        FaIcon(FontAwesomeIcons.icons,
+                            color: Color(0xFF3C729E)),
                         SizedBox(width: 10),
                         Text('Zmień ikonę'),
                       ],
@@ -645,7 +689,8 @@ class _ShelfState extends State<Shelf> {
                     value: 1,
                     child: Row(
                       children: [
-                        FaIcon(FontAwesomeIcons.solidEye, color: Color(0xFF3C729E)),
+                        FaIcon(FontAwesomeIcons.solidEye,
+                            color: Color(0xFF3C729E)),
                         SizedBox(width: 10),
                         Text('Ustawienia widoczności'),
                       ],
@@ -661,7 +706,8 @@ class _ShelfState extends State<Shelf> {
                       value: 2,
                       child: Row(
                         children: [
-                          FaIcon(FontAwesomeIcons.pen, color: Color(0xFF3C729E)),
+                          FaIcon(FontAwesomeIcons.pen,
+                              color: Color(0xFF3C729E)),
                           SizedBox(width: 10),
                           Text('Zmień nazwę'),
                         ],
@@ -672,7 +718,8 @@ class _ShelfState extends State<Shelf> {
                       value: 3,
                       child: Row(
                         children: [
-                          FaIcon(FontAwesomeIcons.trash, color: Color(0xFF3C729E)),
+                          FaIcon(FontAwesomeIcons.trash,
+                              color: Color(0xFF3C729E)),
                           SizedBox(width: 10),
                           Text('Usuń półkę'),
                         ],
@@ -737,27 +784,31 @@ class _ShelfState extends State<Shelf> {
             child: _isLoading
                 ? const Center(child: CircularProgressIndicator())
                 : SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  const SizedBox(height: 20),
-                  ..._books.map((book) => BookItem(book: book)),
-                  const SizedBox(height: 20),
-                ],
-              ),
-            ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        const SizedBox(height: 20),
+                        ..._books.map((book) => BookItem(
+                              book: book,
+                              onRemove: (bookId) =>
+                                  _removeBookFromShelf(bookId),
+                            )),
+                        const SizedBox(height: 20),
+                      ],
+                    ),
+                  ),
           ),
         ],
       ),
     );
   }
-
 }
 
 class BookItem extends StatelessWidget {
   final Map<String, dynamic> book;
+  final Function(String bookId) onRemove;
 
-  const BookItem({super.key, required this.book});
+  const BookItem({super.key, required this.book, required this.onRemove});
 
   @override
   Widget build(BuildContext context) {
@@ -806,16 +857,17 @@ class BookItem extends StatelessWidget {
                     height: 75,
                     color: Colors.grey[300],
                     alignment: Alignment.center,
-                    child: book['coverImage'] != null && book['coverImage'].isNotEmpty
+                    child: book['coverImage'] != null &&
+                            book['coverImage'].isNotEmpty
                         ? Image.network(
-                      book['coverImage'],
-                      fit: BoxFit.cover,
-                    )
+                            book['coverImage'],
+                            fit: BoxFit.cover,
+                          )
                         : Icon(
-                      FontAwesomeIcons.book,
-                      size: 30,
-                      color: Colors.grey[700],
-                    ),
+                            FontAwesomeIcons.book,
+                            size: 30,
+                            color: Colors.grey[700],
+                          ),
                   ),
                   const SizedBox(width: 16),
                   Expanded(
@@ -827,7 +879,10 @@ class BookItem extends StatelessWidget {
                           book['title'] ?? 'N/A',
                           style: TextStyle(
                             color: Colors.black,
-                            fontSize: (book['title'] != null && book['title'].length > 20) ? 14 : 20,
+                            fontSize: (book['title'] != null &&
+                                    book['title'].length > 20)
+                                ? 14
+                                : 20,
                             fontFamily: 'Inter',
                             fontWeight: FontWeight.w600,
                           ),
@@ -845,7 +900,14 @@ class BookItem extends StatelessWidget {
                             );
                           }).toList(),
                         ),
-                        const SizedBox(height: 20),
+                        Expanded(
+                          child: IconButton(
+                              onPressed: () {
+                                onRemove(book['id']);
+                              },
+                              icon: const Icon(Icons.delete),
+                              color: Colors.red),
+                        ),
                       ],
                     ),
                   ),
@@ -893,10 +955,10 @@ class ChangeVisibilityDialog extends StatefulWidget {
   });
 
   @override
-  _ChangeVisibilityDialogState createState() => _ChangeVisibilityDialogState();
+  ChangeVisibilityDialogState createState() => ChangeVisibilityDialogState();
 }
 
-class _ChangeVisibilityDialogState extends State<ChangeVisibilityDialog> {
+class ChangeVisibilityDialogState extends State<ChangeVisibilityDialog> {
   String? _selectedOption;
 
   @override
@@ -906,7 +968,6 @@ class _ChangeVisibilityDialogState extends State<ChangeVisibilityDialog> {
   }
 
   @override
-  @override
   Widget build(BuildContext context) {
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -915,8 +976,7 @@ class _ChangeVisibilityDialogState extends State<ChangeVisibilityDialog> {
           contentPadding: EdgeInsets.zero, // Usunięcie domyślnych odstępów
           title: const Row(
             children: [
-              FaIcon(
-                  FontAwesomeIcons.earthAmericas, color: Color(0xFF3C729E)),
+              FaIcon(FontAwesomeIcons.earthAmericas, color: Color(0xFF3C729E)),
               SizedBox(width: 10),
               Text('Wszyscy'),
             ],
@@ -1000,5 +1060,4 @@ class _ChangeVisibilityDialogState extends State<ChangeVisibilityDialog> {
       ],
     );
   }
-
 }
