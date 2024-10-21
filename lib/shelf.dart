@@ -900,12 +900,14 @@ class BookItem extends StatelessWidget {
                             );
                           }).toList(),
                         ),
-                        IconButton(
-                            onPressed: () {
-                              onRemove(book['id']);
-                            },
-                            icon: const Icon(Icons.delete),
-                            color: Colors.red),
+                        Expanded(
+                          child: IconButton(
+                              onPressed: () {
+                                onRemove(book['id']);
+                              },
+                              icon: const Icon(Icons.delete),
+                              color: Colors.red),
+                        ),
                       ],
                     ),
                   ),
