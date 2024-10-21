@@ -16,6 +16,7 @@ void main() async {
   User? user = FirebaseAuth.instance.currentUser;
 
   runApp(MaterialApp(
+    debugShowCheckedModeBanner: false, 
     initialRoute: user != null ? '/main_page' : '/login',
     routes: {
       '/login': (context) => const Login(),

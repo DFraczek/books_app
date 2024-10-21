@@ -25,7 +25,7 @@ class _LibraryState extends State<Library> {
 
   Future<void> _loadShelves() async {
     try {
-      final storage = const FlutterSecureStorage();
+      const storage = FlutterSecureStorage();
       final userId = await storage.read(key: 'user_id');
 
       if (userId == null) {
@@ -63,7 +63,6 @@ class _LibraryState extends State<Library> {
         _isLoading = false;
       });
     } catch (e) {
-      print('Error loading shelves: $e');
       setState(() {
         _isLoading = false;
       });
@@ -337,7 +336,6 @@ class _LibraryState extends State<Library> {
       final iconName = await _getIconNameFromId(iconId);
       return iconMap[iconName] ?? FontAwesomeIcons.book;
     } catch (e) {
-      print('Error getting icon data: $e');
       return FontAwesomeIcons.book;
     }
   }
@@ -513,13 +511,13 @@ class _LibraryState extends State<Library> {
                                 ),
                               ),
                             ),
-                            Positioned(
+                            const Positioned(
                               left: 30,
                               top: 10,
                               child: SizedBox(
                                 width: 46,
                                 height: 64,
-                                child: const Center(
+                                child: Center(
                                   child: FaIcon(
                                     FontAwesomeIcons.plus,
                                     size: 50,
