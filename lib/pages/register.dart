@@ -2,7 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'widgets/background_ovals.dart';
+import '../widgets/background_ovals.dart';
 
 class Register extends StatefulWidget {
   const Register({super.key});
@@ -287,7 +287,7 @@ class RegisterForm extends StatelessWidget {
   final bool isPasswordVisible;
   final VoidCallback togglePasswordVisibility;
 
-  const RegisterForm({
+  const RegisterForm({super.key, 
     required this.emailController,
     required this.usernameController,
     required this.passwordController,

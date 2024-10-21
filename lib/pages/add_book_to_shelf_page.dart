@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'widgets/background_ovals.dart';
+import '../widgets/background_ovals.dart';
 
 class AddBookToShelfPage extends StatefulWidget {
   final List<String> shelfIds;
   final String bookId;
 
-  const AddBookToShelfPage({
+  const AddBookToShelfPage({super.key, 
     required this.shelfIds,
     required this.bookId,
   });
@@ -52,10 +52,10 @@ class _AddBookToShelfPageState extends State<AddBookToShelfPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Wybierz półkę'),
+        title: const Text('Wybierz półkę'),
       ),
       body: Stack(children: [
-        BackgroundOvals(),
+        const BackgroundOvals(),
         if (shelves.isEmpty)
           const Center(child: CircularProgressIndicator())
         else

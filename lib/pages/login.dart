@@ -2,7 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'widgets/background_ovals.dart';
+import '../widgets/background_ovals.dart';
 
 class Login extends StatefulWidget {
   const Login({super.key});
@@ -58,7 +58,7 @@ class _LoginState extends State<Login> {
 
       final user = userCredential.user;
       if (user != null) {
-        final storage = FlutterSecureStorage();
+        const storage = FlutterSecureStorage();
         await storage.write(key: 'user_id', value: user.uid);
 
         Navigator.pushNamed(context, '/main_page');
@@ -93,7 +93,7 @@ class _LoginState extends State<Login> {
       resizeToAvoidBottomInset: false,
       body: Stack(
         children: [
-          BackgroundOvals(),
+          const BackgroundOvals(),
           GestureDetector(
             onTap: () {
               FocusScope.of(context).unfocus();
@@ -101,8 +101,8 @@ class _LoginState extends State<Login> {
             child: SingleChildScrollView(
               child: Column(
                 children: [
-                  SizedBox(height: 150),
-                  Center(
+                  const SizedBox(height: 150),
+                  const Center(
                     child: Text(
                       'Zaloguj się',
                       style: TextStyle(
@@ -114,7 +114,7 @@ class _LoginState extends State<Login> {
                       ),
                     ),
                   ),
-                  SizedBox(height: 100),
+                  const SizedBox(height: 100),
                   LoginForm(
                     emailController: _emailController,
                     passwordController: _passwordController,
@@ -125,22 +125,22 @@ class _LoginState extends State<Login> {
                       });
                     },
                   ),
-                  SizedBox(height: 40),
+                  const SizedBox(height: 40),
                   LoginButton(onPressed: _handleLoginButtonPress),
-                  if (_isErrorVisible) SizedBox(height: 20),
+                  if (_isErrorVisible) const SizedBox(height: 20),
                   if (_isErrorVisible)
                     Center(
                       child: ErrorMessage(message: _errorMessage),
                     ),
-                  if (_isLoading) SizedBox(height: 20),
+                  if (_isLoading) const SizedBox(height: 20),
                   if (_isLoading)
-                    Center(
+                    const Center(
                       child: CircularProgressIndicator(
                         valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF3C729E)),
                       ),
                     ),
                   SizedBox(height: isPortrait ? 170 : 100),
-                  Positioned(
+                  const Positioned(
                     bottom: 20,
                     left: 0,
                     right: 0,
@@ -162,7 +162,7 @@ class LoginForm extends StatelessWidget {
   final bool isPasswordVisible;
   final VoidCallback onPasswordVisibilityToggle;
 
-  const LoginForm({
+  const LoginForm({super.key, 
     required this.emailController,
     required this.passwordController,
     required this.isPasswordVisible,
@@ -234,7 +234,7 @@ class LoginForm extends StatelessWidget {
 class LoginButton extends StatelessWidget {
   final VoidCallback onPressed;
 
-  const LoginButton({required this.onPressed});
+  const LoginButton({super.key, required this.onPressed});
 
   @override
   Widget build(BuildContext context) {
@@ -269,13 +269,13 @@ class LoginButton extends StatelessWidget {
 class ErrorMessage extends StatelessWidget {
   final String message;
 
-  const ErrorMessage({required this.message});
+  const ErrorMessage({super.key, required this.message});
 
   @override
   Widget build(BuildContext context) {
     return Text(
       message,
-      style: TextStyle(
+      style: const TextStyle(
         color: Colors.red,
       ),
     );
@@ -283,6 +283,8 @@ class ErrorMessage extends StatelessWidget {
 }
 
 class RegistrationPrompt extends StatelessWidget {
+  const RegistrationPrompt({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Center(

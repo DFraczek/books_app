@@ -11,6 +11,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'follow_list.dart';
 
 class Profile extends StatefulWidget {
+  const Profile({super.key});
+
   @override
   _ProfileState createState() => _ProfileState();
 }
@@ -36,14 +38,14 @@ class _ProfileState extends State<Profile> {
 
   // Logout function
   Future<void> _logout() async {
-    final storage = FlutterSecureStorage();
+    const storage = FlutterSecureStorage();
     await storage.delete(key: 'user_id');
     await FirebaseAuth.instance.signOut();
     Navigator.of(context).pushReplacementNamed('/login');
   }
 
   Future<void> _fetchUsername() async {
-    final storage = FlutterSecureStorage();
+    const storage = FlutterSecureStorage();
     String? userId = await storage.read(key: 'user_id');
 
     if (userId != null) {
@@ -60,7 +62,7 @@ class _ProfileState extends State<Profile> {
   }
 
   Future<void> _fetchFollowers() async {
-    final storage = FlutterSecureStorage();
+    const storage = FlutterSecureStorage();
     String? userId = await storage.read(key: 'user_id');
 
     if (userId != null) {
@@ -75,7 +77,7 @@ class _ProfileState extends State<Profile> {
   }
 
   Future<void> _fetchFollowing() async {
-    final storage = FlutterSecureStorage();
+    const storage = FlutterSecureStorage();
     String? userId = await storage.read(key: 'user_id');
 
     if (userId != null) {
@@ -115,7 +117,7 @@ class _ProfileState extends State<Profile> {
 
 
   Future<void> _uploadImageToFirebase(String filePath) async {
-    final storage = FlutterSecureStorage();
+    const storage = FlutterSecureStorage();
     String? userId = await storage.read(key: 'user_id');
     if (userId != null) {
       try {
@@ -148,7 +150,7 @@ class _ProfileState extends State<Profile> {
             decoration: BoxDecoration(
               color: const Color(0xFFF9F1E5),
               borderRadius: BorderRadius.circular(10),
-              boxShadow: [
+              boxShadow: const [
                 BoxShadow(
                   color: Colors.black26,
                   offset: Offset(0, 2),
@@ -162,16 +164,16 @@ class _ProfileState extends State<Profile> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(
+                  const Text(
                     'Edytuj opis',
                     style: TextStyle(fontFamily: 'Inter', fontSize: 18, fontWeight: FontWeight.bold),
                   ),
-                  SizedBox(height: 10),
+                  const SizedBox(height: 10),
                   Container(
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(10),
-                      boxShadow: [
+                      boxShadow: const [
                         BoxShadow(
                           color: Colors.black26,
                           offset: Offset(0, 2),
@@ -199,7 +201,7 @@ class _ProfileState extends State<Profile> {
                       ],
                     ),
                   ),
-                  SizedBox(height: 10),
+                  const SizedBox(height: 10),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
@@ -208,27 +210,27 @@ class _ProfileState extends State<Profile> {
                           Navigator.of(context).pop(controller.text);
                         },
                         style: TextButton.styleFrom(
-                          backgroundColor: Color(0xFF3C729E),
+                          backgroundColor: const Color(0xFF3C729E),
                           foregroundColor: Colors.white,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10),
                           ),
                         ),
-                        child: Text('Zapisz'),
+                        child: const Text('Zapisz'),
                       ),
-                      SizedBox(width: 10), // Space between buttons
+                      const SizedBox(width: 10), // Space between buttons
                       TextButton(
                         onPressed: () {
                           Navigator.of(context).pop();
                         },
                         style: TextButton.styleFrom(
-                          backgroundColor: Color(0xFF3C729E),
+                          backgroundColor: const Color(0xFF3C729E),
                           foregroundColor: Colors.white,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10),
                           ),
                         ),
-                        child: Text('Anuluj'),
+                        child: const Text('Anuluj'),
                       ),
                     ],
                   ),
@@ -241,7 +243,7 @@ class _ProfileState extends State<Profile> {
     );
 
     if (newAboutMe != null) {
-      final storage = FlutterSecureStorage();
+      const storage = FlutterSecureStorage();
       String? userId = await storage.read(key: 'user_id');
       if (userId != null) {
         await FirebaseFirestore.instance.collection('user').doc(userId).update({'aboutMe': newAboutMe});
@@ -267,7 +269,7 @@ class _ProfileState extends State<Profile> {
                   decoration: BoxDecoration(
                     color: const Color(0xFFF9F1E5),
                     borderRadius: BorderRadius.circular(10),
-                    boxShadow: [
+                    boxShadow: const [
                       BoxShadow(
                         color: Colors.black26,
                         offset: Offset(0, 2),
@@ -279,8 +281,8 @@ class _ProfileState extends State<Profile> {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Padding(
-                        padding: const EdgeInsets.all(16.0),
+                      const Padding(
+                        padding: EdgeInsets.all(16.0),
                         child: Text('Zmień adres e-mail', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                       ),
                       Container(
@@ -288,7 +290,7 @@ class _ProfileState extends State<Profile> {
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(10),
-                          boxShadow: [
+                          boxShadow: const [
                             BoxShadow(
                               color: Colors.black26,
                               offset: Offset(0, 2),
@@ -307,22 +309,22 @@ class _ProfileState extends State<Profile> {
                               borderRadius: BorderRadius.circular(10),
                               borderSide: BorderSide.none,
                             ),
-                            prefixIcon: Padding(
-                              padding: const EdgeInsets.all(12.0),
+                            prefixIcon: const Padding(
+                              padding: EdgeInsets.all(12.0),
                               child: Icon(FontAwesomeIcons.envelope, color: Colors.grey),
                             ),
                           ),
                           keyboardType: TextInputType.emailAddress,
                         ),
                       ),
-                      SizedBox(height: 10),
+                      const SizedBox(height: 10),
                       // Input field for new email
                       Container(
                         width: MediaQuery.of(context).size.width * 0.7,
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(10),
-                          boxShadow: [
+                          boxShadow: const [
                             BoxShadow(
                               color: Colors.black26,
                               offset: Offset(0, 2),
@@ -341,15 +343,15 @@ class _ProfileState extends State<Profile> {
                               borderRadius: BorderRadius.circular(10),
                               borderSide: BorderSide.none,
                             ),
-                            prefixIcon: Padding(
-                              padding: const EdgeInsets.all(12.0),
+                            prefixIcon: const Padding(
+                              padding: EdgeInsets.all(12.0),
                               child: Icon(FontAwesomeIcons.envelope, color: Colors.grey),
                             ),
                           ),
                           keyboardType: TextInputType.emailAddress,
                         ),
                       ),
-                      SizedBox(height: 10),
+                      const SizedBox(height: 10),
                       ValueListenableBuilder<String?>(
                         valueListenable: errorMessageNotifier,
                         builder: (context, errorMessage, child) {
@@ -357,12 +359,12 @@ class _ProfileState extends State<Profile> {
                             visible: errorMessage != null,
                             child: Text(
                               errorMessage ?? '',
-                              style: TextStyle(color: Colors.red),
+                              style: const TextStyle(color: Colors.red),
                             ),
                           );
                         },
                       ),
-                      SizedBox(height: 10),
+                      const SizedBox(height: 10),
                       OverflowBar(
                         alignment: MainAxisAlignment.end,
                         children: [
@@ -372,7 +374,7 @@ class _ProfileState extends State<Profile> {
                               onPressed: () async {
                                 errorMessageNotifier.value = null;
 
-                                final storage = FlutterSecureStorage();
+                                const storage = FlutterSecureStorage();
                                 String? userId = await storage.read(key: 'user_id');
 
                                 // Regex for validating email
@@ -410,13 +412,13 @@ class _ProfileState extends State<Profile> {
                                 }
                               },
                               style: TextButton.styleFrom(
-                                backgroundColor: Color(0xFF3C729E),
+                                backgroundColor: const Color(0xFF3C729E),
                                 foregroundColor: Colors.white,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(10),
                                 ),
                               ),
-                              child: Text('Zapisz'),
+                              child: const Text('Zapisz'),
                             ),
                           ),
                           Padding(
@@ -426,13 +428,13 @@ class _ProfileState extends State<Profile> {
                                 Navigator.of(context).pop();
                               },
                               style: TextButton.styleFrom(
-                                backgroundColor: Color(0xFF3C729E),
+                                backgroundColor: const Color(0xFF3C729E),
                                 foregroundColor: Colors.white,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(10),
                                 ),
                               ),
-                              child: Text('Anuluj'),
+                              child: const Text('Anuluj'),
                             ),
                           ),
                         ],
@@ -469,7 +471,7 @@ class _ProfileState extends State<Profile> {
                   decoration: BoxDecoration(
                     color: const Color(0xFFF9F1E5),
                     borderRadius: BorderRadius.circular(10),
-                    boxShadow: [
+                    boxShadow: const [
                       BoxShadow(
                         color: Colors.black26,
                         offset: Offset(0, 2),
@@ -481,8 +483,8 @@ class _ProfileState extends State<Profile> {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Padding(
-                        padding: const EdgeInsets.all(16.0),
+                      const Padding(
+                        padding: EdgeInsets.all(16.0),
                         child: Text('Zmień hasło',
                             style: TextStyle(
                                 fontSize: 18, fontWeight: FontWeight.bold)),
@@ -498,7 +500,7 @@ class _ProfileState extends State<Profile> {
                           });
                         },
                       ),
-                      SizedBox(height: 10),
+                      const SizedBox(height: 10),
                       // Input field for new password
                       _buildPasswordInputField(
                         context,
@@ -511,7 +513,7 @@ class _ProfileState extends State<Profile> {
                           });
                         },
                       ),
-                      SizedBox(height: 10),
+                      const SizedBox(height: 10),
                       _buildPasswordInputField(
                         context,
                         controller: confirmPasswordController,
@@ -523,7 +525,7 @@ class _ProfileState extends State<Profile> {
                           });
                         },
                       ),
-                      SizedBox(height: 10),
+                      const SizedBox(height: 10),
                       ValueListenableBuilder<String?>(
                         valueListenable: errorMessageNotifier,
                         builder: (context, errorMessage, child) {
@@ -531,12 +533,12 @@ class _ProfileState extends State<Profile> {
                             visible: errorMessage != null,
                             child: Text(
                               errorMessage ?? '',
-                              style: TextStyle(color: Colors.red),
+                              style: const TextStyle(color: Colors.red),
                             ),
                           );
                         },
                       ),
-                      SizedBox(height: 10),
+                      const SizedBox(height: 10),
                       OverflowBar(
                         alignment: MainAxisAlignment.end,
                         children: [
@@ -574,7 +576,7 @@ class _ProfileState extends State<Profile> {
                                       newPasswordController.text);
                                   Navigator.of(context).pop();
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
+                                    const SnackBar(
                                       content: Text('Hasło zostało zmienione.'),
                                       backgroundColor: Colors.green,
                                     ),
@@ -595,13 +597,13 @@ class _ProfileState extends State<Profile> {
                                 }
                               },
                               style: TextButton.styleFrom(
-                                backgroundColor: Color(0xFF3C729E),
+                                backgroundColor: const Color(0xFF3C729E),
                                 foregroundColor: Colors.white,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(10),
                                 ),
                               ),
-                              child: Text('Zapisz'),
+                              child: const Text('Zapisz'),
                             ),
                           ),
                           Padding(
@@ -611,13 +613,13 @@ class _ProfileState extends State<Profile> {
                                 Navigator.of(context).pop();
                               },
                               style: TextButton.styleFrom(
-                                backgroundColor: Color(0xFF3C729E),
+                                backgroundColor: const Color(0xFF3C729E),
                                 foregroundColor: Colors.white,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(10),
                                 ),
                               ),
-                              child: Text('Anuluj'),
+                              child: const Text('Anuluj'),
                             ),
                           ),
                         ],
@@ -643,7 +645,7 @@ class _ProfileState extends State<Profile> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(10),
-        boxShadow: [
+        boxShadow: const [
           BoxShadow(
             color: Colors.black26,
             offset: Offset(0, 2),
@@ -663,8 +665,8 @@ class _ProfileState extends State<Profile> {
             borderRadius: BorderRadius.circular(10),
             borderSide: BorderSide.none,
           ),
-          prefixIcon: Padding(
-            padding: const EdgeInsets.all(12.0),
+          prefixIcon: const Padding(
+            padding: EdgeInsets.all(12.0),
             child: Icon(FontAwesomeIcons.lock, color: Colors.grey),
           ),
           suffixIcon: IconButton(
@@ -701,7 +703,7 @@ class _ProfileState extends State<Profile> {
                 BoxShadow(
                   color: Colors.black.withOpacity(0.1),
                   blurRadius: 10,
-                  offset: Offset(0, 4),
+                  offset: const Offset(0, 4),
                 ),
               ],
             ),
@@ -714,13 +716,13 @@ class _ProfileState extends State<Profile> {
                     width: 100,
                     height: 100,
                     decoration: BoxDecoration(
-                      color: Color(0xFFD9D9D9),
+                      color: const Color(0xFFD9D9D9),
                       shape: BoxShape.circle,
                       boxShadow: [
                         BoxShadow(
                           color: Colors.black.withOpacity(0.1),
                           blurRadius: 6,
-                          offset: Offset(0, 2),
+                          offset: const Offset(0, 2),
                         ),
                       ],
                     ),
@@ -735,7 +737,7 @@ class _ProfileState extends State<Profile> {
                         profilePictureUrl!,
                         fit: BoxFit.cover,
                       ))
-                          : Center(child: CircularProgressIndicator()),
+                          : const Center(child: CircularProgressIndicator()),
                     ),
                   ),
                 ),
@@ -751,7 +753,7 @@ class _ProfileState extends State<Profile> {
                         color: Colors.white.withOpacity(0.5),
                         shape: BoxShape.circle,
                       ),
-                      child: Center(child: CircularProgressIndicator()),
+                      child: const Center(child: CircularProgressIndicator()),
                     ),
                   ),
                 Positioned(
@@ -763,17 +765,17 @@ class _ProfileState extends State<Profile> {
                       width: 40,
                       height: 40,
                       decoration: BoxDecoration(
-                        color: Color(0xFFC4C2C2),
+                        color: const Color(0xFFC4C2C2),
                         shape: BoxShape.circle,
                         boxShadow: [
                           BoxShadow(
                             color: Colors.black.withOpacity(0.1),
                             blurRadius: 4,
-                            offset: Offset(0, 2),
+                            offset: const Offset(0, 2),
                           ),
                         ],
                       ),
-                      child: Icon(
+                      child: const Icon(
                         FontAwesomeIcons.pen,
                         color: Colors.black,
                         size: 15,
@@ -801,7 +803,7 @@ class _ProfileState extends State<Profile> {
                   child: GestureDetector(
                     onTap: _editAboutMe,
                     child: Container(
-                      padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                       decoration: BoxDecoration(
                         color: Colors.grey[200],
                         borderRadius: BorderRadius.circular(10),
@@ -814,7 +816,7 @@ class _ProfileState extends State<Profile> {
                               aboutMe != null && aboutMe!.isNotEmpty
                                   ? aboutMe!
                                   : 'Dodaj kilka słów o sobie',
-                              style: TextStyle(
+                              style: const TextStyle(
                                 fontSize: 14,
                                 color: Colors.grey,
                                 fontWeight: FontWeight.w600,
@@ -823,7 +825,7 @@ class _ProfileState extends State<Profile> {
                               textAlign: TextAlign.start,
                             ),
                           ),
-                          SizedBox(width: 8),
+                          const SizedBox(width: 8),
                           const Icon(
                             FontAwesomeIcons.pen,
                             color: Colors.grey,
@@ -945,8 +947,8 @@ class _ProfileState extends State<Profile> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Padding(
-                    padding: const EdgeInsets.only(left: 20.0),
+                  const Padding(
+                    padding: EdgeInsets.only(left: 20.0),
                     child: Icon(
                       FontAwesomeIcons.at,
                       color: Color(0xFF3C729E),
@@ -958,7 +960,7 @@ class _ProfileState extends State<Profile> {
                       child: Text(
                         email ?? 'Błąd przy pobieraniu adresu email',
                         textAlign: TextAlign.left,
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w400,
                           fontFamily: 'Inter',
@@ -966,8 +968,8 @@ class _ProfileState extends State<Profile> {
                       ),
                     ),
                   ),
-                  Padding(
-                    padding: const EdgeInsets.only(right: 20.0),
+                  const Padding(
+                    padding: EdgeInsets.only(right: 20.0),
                     child: Icon(
                       FontAwesomeIcons.pen,
                       color: Colors.grey,
@@ -978,7 +980,7 @@ class _ProfileState extends State<Profile> {
             ),
           ),
 
-          SizedBox(height: 16),
+          const SizedBox(height: 16),
           // Zmień hasło
           Container(
             width: containerWidth,
@@ -990,17 +992,17 @@ class _ProfileState extends State<Profile> {
                 BoxShadow(
                   color: Colors.black.withOpacity(0.1),
                   blurRadius: 10,
-                  offset: Offset(0, 4),
+                  offset: const Offset(0, 4),
                 ),
               ],
             ),
             child: GestureDetector(
               onTap: () => _changePassword(),
-              child: Row(
+              child: const Row(
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: [
                   Padding(
-                    padding: const EdgeInsets.only(left: 20.0, right: 30.0),
+                    padding: EdgeInsets.only(left: 20.0, right: 30.0),
                     child: Icon(
                       FontAwesomeIcons.lock,
                       color: Color(0xFF3C729E),
@@ -1021,12 +1023,12 @@ class _ProfileState extends State<Profile> {
               ),
             ),
           ),
-          SizedBox(height: 16),
+          const SizedBox(height: 16),
           //logout
           ElevatedButton(
             onPressed: _logout,
             style: ElevatedButton.styleFrom(
-              backgroundColor: Color(0xFF3C729E),
+              backgroundColor: const Color(0xFF3C729E),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(10),
               ),
@@ -1036,7 +1038,7 @@ class _ProfileState extends State<Profile> {
               width: containerWidth,
               height: 50,
               alignment: Alignment.center,
-              child: Text(
+              child: const Text(
                 'Wyloguj',
                 style: TextStyle(
                   color: Colors.white,

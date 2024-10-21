@@ -4,13 +4,13 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'icon_map.dart';
-import 'book_details.dart';
+import 'pages/book_details.dart';
 import 'widgets/background_ovals.dart';
 
 class Shelf extends StatefulWidget {
   final String shelfId;
 
-  const Shelf({Key? key, required this.shelfId}) : super(key: key);
+  const Shelf({super.key, required this.shelfId});
 
   @override
   _ShelfState createState() => _ShelfState();
@@ -117,7 +117,7 @@ class _ShelfState extends State<Shelf> {
   }
 
   Future<int> _getUserRatingForBook(String bookId) async {
-    final storage = FlutterSecureStorage();
+    const storage = FlutterSecureStorage();
     String? userId = await storage.read(key: 'user_id');
 
     final reviewQuery = await FirebaseFirestore.instance
@@ -165,7 +165,7 @@ class _ShelfState extends State<Shelf> {
   }
 
   void _showRenameShelfDialog() {
-    TextEditingController _controller = TextEditingController(text: _shelfName);
+    TextEditingController controller = TextEditingController(text: _shelfName);
     String errorMessage = '';
 
     showDialog(
@@ -182,8 +182,8 @@ class _ShelfState extends State<Shelf> {
 
                 return AlertDialog(
                   backgroundColor: const Color(0xFFF9F1E5),
-                  title: Text('Zmień nazwę półki'),
-                  contentPadding: EdgeInsets.all(16),
+                  title: const Text('Zmień nazwę półki'),
+                  contentPadding: const EdgeInsets.all(16),
                   content: ConstrainedBox(
                     constraints: BoxConstraints(
                       maxHeight: dialogHeight * 0.6, // Adjust height ratio as needed
@@ -195,19 +195,19 @@ class _ShelfState extends State<Shelf> {
                         children: [
                           TextField(
                             autofocus: true,
-                            controller: _controller,
+                            controller: controller,
                             decoration: InputDecoration(
                               hintText: 'Wpisz nazwę półki',
                               errorText: errorMessage.isNotEmpty ? errorMessage : null,
                             ),
                           ),
-                          SizedBox(height: 8),
+                          const SizedBox(height: 8),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.end,
                             children: [
                               TextButton(
                                 onPressed: () async {
-                                  final newShelfName = _controller.text;
+                                  final newShelfName = controller.text;
 
                                   if (newShelfName.isEmpty) {
                                     setState(() {
@@ -223,7 +223,7 @@ class _ShelfState extends State<Shelf> {
                                     return;
                                   }
 
-                                  final storage = FlutterSecureStorage();
+                                  final storage = const FlutterSecureStorage();
                                   final userId = await storage.read(key: 'user_id');
 
                                   if (userId == null) {
@@ -246,7 +246,7 @@ class _ShelfState extends State<Shelf> {
                                   final existingShelves = shelvesQuery.docs;
 
                                   bool isDuplicate = existingShelves.any((shelf) {
-                                    return (shelf.data() as Map<String, dynamic>)['name'] ==
+                                    return (shelf.data())['name'] ==
                                         newShelfName;
                                   });
 
@@ -263,27 +263,27 @@ class _ShelfState extends State<Shelf> {
                                   _loadBooks();
                                 },
                                 style: TextButton.styleFrom(
-                                  backgroundColor: Color(0xFF3C729E),
+                                  backgroundColor: const Color(0xFF3C729E),
                                   foregroundColor: Colors.white,
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(10),
                                   ),
                                 ),
-                                child: Text('Zmień nazwę'),
+                                child: const Text('Zmień nazwę'),
                               ),
-                              SizedBox(width: 8),
+                              const SizedBox(width: 8),
                               TextButton(
                                 onPressed: () {
                                   Navigator.of(context).pop();
                                 },
                                 style: TextButton.styleFrom(
-                                  backgroundColor: Color(0xFF3C729E),
+                                  backgroundColor: const Color(0xFF3C729E),
                                   foregroundColor: Colors.white,
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(10),
                                   ),
                                 ),
-                                child: Text('Anuluj'),
+                                child: const Text('Anuluj'),
                               ),
                             ],
                           ),
@@ -302,7 +302,7 @@ class _ShelfState extends State<Shelf> {
 
   Future<void> _deleteShelf(String shelfId) async {
     try {
-      final storage = FlutterSecureStorage();
+      const storage = FlutterSecureStorage();
       String? userId = await storage.read(key: 'user_id');
       final userRef = FirebaseFirestore.instance.collection('user').doc(userId);
 
@@ -330,7 +330,7 @@ class _ShelfState extends State<Shelf> {
           builder: (context, setState) {
             return AlertDialog(
               backgroundColor: const Color(0xFFF9F1E5),
-              title: Text('Na pewno chcesz usunąć półkę?'),
+              title: const Text('Na pewno chcesz usunąć półkę?'),
               actions: [
                 TextButton(
                   onPressed: () async {
@@ -340,26 +340,26 @@ class _ShelfState extends State<Shelf> {
                     Navigator.pop(context, true);
                   },
                   style: TextButton.styleFrom(
-                    backgroundColor: Color(0xFF3C729E),
+                    backgroundColor: const Color(0xFF3C729E),
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
                   ),
-                  child: Text('Usuń'),
+                  child: const Text('Usuń'),
                 ),
                 TextButton(
                   onPressed: () {
                     Navigator.of(context).pop();
                   },
                   style: TextButton.styleFrom(
-                    backgroundColor: Color(0xFF3C729E),
+                    backgroundColor: const Color(0xFF3C729E),
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
                   ),
-                  child: Text('Anuluj'),
+                  child: const Text('Anuluj'),
                 ),
               ],
             );
@@ -383,7 +383,7 @@ class _ShelfState extends State<Shelf> {
       builder: (context) {
         return AlertDialog(
           backgroundColor: const Color(0xFFF9F1E5),
-          title: Text('Ustawienia widoczności'),
+          title: const Text('Ustawienia widoczności'),
           content: ChangeVisibilityDialog(
             currentVisibility: currentVisibility,
             onSave: (String newVisibility) async {
@@ -410,13 +410,13 @@ class _ShelfState extends State<Shelf> {
       context: context,
       builder: (context) {
         String selectedIconId = 'BNY3UlRkOfWOKvjLgunJ'; // Default icon ID
-        Color selectedColor = Color(0xFF3C729E); // Default color
+        Color selectedColor = const Color(0xFF3C729E); // Default color
 
         return StatefulBuilder(
           builder: (context, setState) {
             return AlertDialog(
               backgroundColor: const Color(0xFFF9F1E5),
-              title: Text(
+              title: const Text(
                 'Zmień ikonę półki',
                 style: TextStyle(
                   fontSize: 20,
@@ -439,7 +439,7 @@ class _ShelfState extends State<Shelf> {
                             .get(),
                         builder: (context, snapshot) {
                           if (!snapshot.hasData) {
-                            return Center(child: CircularProgressIndicator());
+                            return const Center(child: CircularProgressIndicator());
                           }
                           final icons = snapshot.data!.docs;
                           return DropdownButton<String>(
@@ -453,7 +453,7 @@ class _ShelfState extends State<Shelf> {
                                 child: Row(
                                   children: [
                                     FaIcon(iconData),
-                                    SizedBox(width: 10),
+                                    const SizedBox(width: 10),
                                     Text(iconName),
                                   ],
                                 ),
@@ -464,12 +464,12 @@ class _ShelfState extends State<Shelf> {
                                 selectedIconId = value!;
                               });
                             },
-                            hint: Text('Wybierz ikonę'),
-                            dropdownColor: Color(0xFFF9F1E5),
+                            hint: const Text('Wybierz ikonę'),
+                            dropdownColor: const Color(0xFFF9F1E5),
                           );
                         },
                       ),
-                      SizedBox(height: 16),
+                      const SizedBox(height: 16),
                       // Color picker
                       GestureDetector(
                         onTap: () {
@@ -477,8 +477,8 @@ class _ShelfState extends State<Shelf> {
                             context: context,
                             builder: (context) {
                               return AlertDialog(
-                                backgroundColor: Color(0xFFF9F1E5),
-                                title: Text('Wybierz kolor'),
+                                backgroundColor: const Color(0xFFF9F1E5),
+                                title: const Text('Wybierz kolor'),
                                 content: SingleChildScrollView(
                                   child: ColorPicker(
                                     pickerColor: selectedColor,
@@ -491,7 +491,7 @@ class _ShelfState extends State<Shelf> {
                                 ),
                                 actions: [
                                   TextButton(
-                                    child: Text(
+                                    child: const Text(
                                       'Gotowe',
                                       style:
                                       TextStyle(color: Color(0xFF3C729E)),
@@ -509,7 +509,7 @@ class _ShelfState extends State<Shelf> {
                           height: 50,
                           width: double.infinity,
                           color: selectedColor,
-                          child: Center(
+                          child: const Center(
                             child: Text(
                               'Wybierz kolor półki',
                               style: TextStyle(color: Colors.white),
@@ -517,7 +517,7 @@ class _ShelfState extends State<Shelf> {
                           ),
                         ),
                       ),
-                      SizedBox(height: 16),
+                      const SizedBox(height: 16),
                       // Buttons
                       Row(
                         mainAxisAlignment: MainAxisAlignment.end,
@@ -528,27 +528,27 @@ class _ShelfState extends State<Shelf> {
                               Navigator.pop(context, true);
                             },
                             style: TextButton.styleFrom(
-                              backgroundColor: Color(0xFF3C729E),
+                              backgroundColor: const Color(0xFF3C729E),
                               foregroundColor: Colors.white,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(10),
                               ),
                             ),
-                            child: Text('Zapisz'),
+                            child: const Text('Zapisz'),
                           ),
-                          SizedBox(width: 10),
+                          const SizedBox(width: 10),
                           TextButton(
                             onPressed: () {
                               Navigator.of(context).pop();
                             },
                             style: TextButton.styleFrom(
-                              backgroundColor: Color(0xFF3C729E),
+                              backgroundColor: const Color(0xFF3C729E),
                               foregroundColor: Colors.white,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(10),
                               ),
                             ),
-                            child: Text('Anuluj'),
+                            child: const Text('Anuluj'),
                           ),
                         ],
                       ),
@@ -566,14 +566,14 @@ class _ShelfState extends State<Shelf> {
   AppBar _buildAppBar() {
     return AppBar(
       backgroundColor: const Color(0xFF2C5473),
-      iconTheme: IconThemeData(
+      iconTheme: const IconThemeData(
         color: Color(0xFFF9F1E5),
       ),
       actions: <Widget>[
         //--------------------------------------------search menu
         PopupMenuButton<int>(
           icon: const FaIcon(FontAwesomeIcons.magnifyingGlass),
-          color: Color(0xFFF9F1E5),
+          color: const Color(0xFFF9F1E5),
           tooltip: 'Szukaj',
           onSelected: (value) {
             switch (value) {
@@ -586,11 +586,11 @@ class _ShelfState extends State<Shelf> {
             }
           },
           itemBuilder: (BuildContext context) => [
-            PopupMenuItem<int>(
+            const PopupMenuItem<int>(
               value: 0,
               child: Text('Option 1'),
             ),
-            PopupMenuItem<int>(
+            const PopupMenuItem<int>(
               value: 1,
               child: Text('Option 2'),
             ),
@@ -602,11 +602,11 @@ class _ShelfState extends State<Shelf> {
 
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return CircularProgressIndicator();
+              return const CircularProgressIndicator();
             }
 
             if (!snapshot.hasData || snapshot.data == null) {
-              return SizedBox(); // If there's an error or no data, display nothing
+              return const SizedBox(); // If there's an error or no data, display nothing
             }
 
             final shelfName = snapshot.data!['name'];
@@ -618,7 +618,7 @@ class _ShelfState extends State<Shelf> {
             return PopupMenuButton<int>(
               icon: const FaIcon(FontAwesomeIcons.sliders),
               tooltip: 'Ustawienia',
-              color: Color(0xFFF9F1E5),
+              color: const Color(0xFFF9F1E5),
               onSelected: (value) {
                 switch (value) {
                   case 0:
@@ -637,23 +637,23 @@ class _ShelfState extends State<Shelf> {
               },
               itemBuilder: (BuildContext context) {
                 List<PopupMenuEntry<int>> items = [
-                  PopupMenuItem<int>(
+                  const PopupMenuItem<int>(
                     value: 0,
                     child: Row(
                       children: [
-                        const FaIcon(FontAwesomeIcons.icons, color: Color(0xFF3C729E)),
-                        const SizedBox(width: 10),
+                        FaIcon(FontAwesomeIcons.icons, color: Color(0xFF3C729E)),
+                        SizedBox(width: 10),
                         Text('Zmień ikonę'),
                       ],
                     ),
                   ),
-                  PopupMenuDivider(),
-                  PopupMenuItem<int>(
+                  const PopupMenuDivider(),
+                  const PopupMenuItem<int>(
                     value: 1,
                     child: Row(
                       children: [
-                        const FaIcon(FontAwesomeIcons.solidEye, color: Color(0xFF3C729E)),
-                        const SizedBox(width: 10),
+                        FaIcon(FontAwesomeIcons.solidEye, color: Color(0xFF3C729E)),
+                        SizedBox(width: 10),
                         Text('Ustawienia widoczności'),
                       ],
                     ),
@@ -663,24 +663,24 @@ class _ShelfState extends State<Shelf> {
                 //defaultowe polki mają NIE mieć opcji zmiany nazwy i usunięcia
                 if (!isDefaultShelf) {
                   items.addAll([
-                    PopupMenuDivider(),
-                    PopupMenuItem<int>(
+                    const PopupMenuDivider(),
+                    const PopupMenuItem<int>(
                       value: 2,
                       child: Row(
                         children: [
-                          const FaIcon(FontAwesomeIcons.pen, color: Color(0xFF3C729E)),
-                          const SizedBox(width: 10),
+                          FaIcon(FontAwesomeIcons.pen, color: Color(0xFF3C729E)),
+                          SizedBox(width: 10),
                           Text('Zmień nazwę'),
                         ],
                       ),
                     ),
-                    PopupMenuDivider(),
-                    PopupMenuItem<int>(
+                    const PopupMenuDivider(),
+                    const PopupMenuItem<int>(
                       value: 3,
                       child: Row(
                         children: [
-                          const FaIcon(FontAwesomeIcons.trash, color: Color(0xFF3C729E)),
-                          const SizedBox(width: 10),
+                          FaIcon(FontAwesomeIcons.trash, color: Color(0xFF3C729E)),
+                          SizedBox(width: 10),
                           Text('Usuń półkę'),
                         ],
                       ),
@@ -703,14 +703,14 @@ class _ShelfState extends State<Shelf> {
       appBar: _buildAppBar(),
       body: Stack(
         children: [
-          BackgroundOvals(),
+          const BackgroundOvals(),
           Positioned(
             top: 10,
             left: 20,
             right: 20,
             child: Text(
               _shelfName,
-              style: TextStyle(
+              style: const TextStyle(
                 color: Colors.white,
                 fontSize: 40,
                 fontFamily: 'Inter',
@@ -728,7 +728,7 @@ class _ShelfState extends State<Shelf> {
                 fontSize: 20,
                 shadows: [
                   Shadow(
-                    offset: Offset(0.5, 0.5),
+                    offset: const Offset(0.5, 0.5),
                     blurRadius: 2.0,
                     color: Colors.black.withOpacity(0.4),
                   ),
@@ -742,13 +742,13 @@ class _ShelfState extends State<Shelf> {
             right: 0,
             bottom: 0,
             child: _isLoading
-                ? Center(child: CircularProgressIndicator())
+                ? const Center(child: CircularProgressIndicator())
                 : SingleChildScrollView(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   const SizedBox(height: 20),
-                  ..._books.map((book) => BookItem(book: book)).toList(),
+                  ..._books.map((book) => BookItem(book: book)),
                   const SizedBox(height: 20),
                 ],
               ),
@@ -764,7 +764,7 @@ class _ShelfState extends State<Shelf> {
 class BookItem extends StatelessWidget {
   final Map<String, dynamic> book;
 
-  const BookItem({Key? key, required this.book}) : super(key: key);
+  const BookItem({super.key, required this.book});
 
   @override
   Widget build(BuildContext context) {
@@ -787,13 +787,13 @@ class BookItem extends StatelessWidget {
       child: Container(
         width: containerWidth,
         height: containerHeight,
-        margin: EdgeInsets.symmetric(vertical: 10),
+        margin: const EdgeInsets.symmetric(vertical: 10),
         decoration: ShapeDecoration(
           color: Colors.white,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10),
           ),
-          shadows: [
+          shadows: const [
             BoxShadow(
               color: Color(0x3F000000),
               blurRadius: 4,
@@ -824,7 +824,7 @@ class BookItem extends StatelessWidget {
                       color: Colors.grey[700],
                     ),
                   ),
-                  SizedBox(width: 16),
+                  const SizedBox(width: 16),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -839,20 +839,20 @@ class BookItem extends StatelessWidget {
                             fontWeight: FontWeight.w600,
                           ),
                         ),
-                        SizedBox(height: 4),
+                        const SizedBox(height: 4),
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: authorsList.map((author) {
                             return Text(
                               author,
-                              style: TextStyle(
+                              style: const TextStyle(
                                 color: Color(0xFF949494),
                                 fontSize: 16,
                               ),
                             );
                           }).toList(),
                         ),
-                        SizedBox(height: 20),
+                        const SizedBox(height: 20),
                       ],
                     ),
                   ),
@@ -867,13 +867,13 @@ class BookItem extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: List.generate(5, (index) {
                     if (index < book['rate']) {
-                      return Icon(
+                      return const Icon(
                         FontAwesomeIcons.solidStar,
                         size: 20,
                         color: Color(0xFFFFD700),
                       );
                     } else {
-                      return Icon(
+                      return const Icon(
                         FontAwesomeIcons.star,
                         size: 20,
                         color: Color(0xFFFFD700),
@@ -894,10 +894,10 @@ class ChangeVisibilityDialog extends StatefulWidget {
   final void Function(String) onSave;
 
   const ChangeVisibilityDialog({
-    Key? key,
+    super.key,
     required this.currentVisibility,
     required this.onSave,
-  }) : super(key: key);
+  });
 
   @override
   _ChangeVisibilityDialogState createState() => _ChangeVisibilityDialogState();
@@ -920,18 +920,18 @@ class _ChangeVisibilityDialogState extends State<ChangeVisibilityDialog> {
       children: <Widget>[
         ListTile(
           contentPadding: EdgeInsets.zero, // Usunięcie domyślnych odstępów
-          title: Row(
+          title: const Row(
             children: [
-              const FaIcon(
+              FaIcon(
                   FontAwesomeIcons.earthAmericas, color: Color(0xFF3C729E)),
-              const SizedBox(width: 10),
+              SizedBox(width: 10),
               Text('Wszyscy'),
             ],
           ),
           leading: RadioTheme(
             data: RadioThemeData(
-              fillColor: MaterialStateProperty.all(
-                  Color(0xFF3C729E)), // Kolor zaznaczonego przycisku
+              fillColor: WidgetStateProperty.all(
+                  const Color(0xFF3C729E)), // Kolor zaznaczonego przycisku
             ),
             child: Radio<String>(
               value: 'public',
@@ -946,17 +946,17 @@ class _ChangeVisibilityDialogState extends State<ChangeVisibilityDialog> {
         ),
         ListTile(
           contentPadding: EdgeInsets.zero, // Usunięcie domyślnych odstępów
-          title: Row(
+          title: const Row(
             children: [
-              const FaIcon(FontAwesomeIcons.lock, color: Color(0xFF3C729E)),
-              const SizedBox(width: 10),
+              FaIcon(FontAwesomeIcons.lock, color: Color(0xFF3C729E)),
+              SizedBox(width: 10),
               Text('Tylko ja'),
             ],
           ),
           leading: RadioTheme(
             data: RadioThemeData(
-              fillColor: MaterialStateProperty.all(
-                  Color(0xFF3C729E)), // Kolor zaznaczonego przycisku
+              fillColor: WidgetStateProperty.all(
+                  const Color(0xFF3C729E)), // Kolor zaznaczonego przycisku
             ),
             child: Radio<String>(
               value: 'private',
@@ -969,7 +969,7 @@ class _ChangeVisibilityDialogState extends State<ChangeVisibilityDialog> {
             ),
           ),
         ),
-        SizedBox(height: 20),
+        const SizedBox(height: 20),
         Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
@@ -978,15 +978,15 @@ class _ChangeVisibilityDialogState extends State<ChangeVisibilityDialog> {
                 Navigator.of(context).pop();
               },
               style: TextButton.styleFrom(
-                backgroundColor: Color(0xFF3C729E),
+                backgroundColor: const Color(0xFF3C729E),
                 foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10),
                 ),
               ),
-              child: Text('Anuluj'),
+              child: const Text('Anuluj'),
             ),
-            SizedBox(width: 8),
+            const SizedBox(width: 8),
             TextButton(
               onPressed: () {
                 if (_selectedOption != null) {
@@ -994,13 +994,13 @@ class _ChangeVisibilityDialogState extends State<ChangeVisibilityDialog> {
                 }
               },
               style: TextButton.styleFrom(
-                backgroundColor: Color(0xFF3C729E),
+                backgroundColor: const Color(0xFF3C729E),
                 foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10),
                 ),
               ),
-              child: Text('Zapisz'),
+              child: const Text('Zapisz'),
             ),
           ],
         ),
