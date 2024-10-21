@@ -143,10 +143,8 @@ class _ShelfState extends State<Shelf> {
         'name': newName,
       });
 
-      print("Shelf name updated successfully");
-    } catch (e) {
-      print("Error updating shelf name: $e");
-    }
+    // ignore: empty_catches
+    } catch (e) {}
   }
 
   Future<void> _updateShelfIcon(String shelfId, String icon, Color color) async {
@@ -158,10 +156,8 @@ class _ShelfState extends State<Shelf> {
         'icon': [{'color': '0x${color.value.toRadixString(16).toUpperCase()}', 'name': icon}],
       });
 
-      print("Shelf icon updated successfully");
-    } catch (e) {
-      print("Error updating shelf icon: $e");
-    }
+    // ignore: empty_catches
+    } catch (e) {}
   }
 
   void _showRenameShelfDialog() {
@@ -223,7 +219,7 @@ class _ShelfState extends State<Shelf> {
                                     return;
                                   }
 
-                                  final storage = const FlutterSecureStorage();
+                                  const storage = FlutterSecureStorage();
                                   final userId = await storage.read(key: 'user_id');
 
                                   if (userId == null) {
@@ -309,17 +305,15 @@ class _ShelfState extends State<Shelf> {
       await userRef.update({
         'bookshelves': FieldValue.arrayRemove([widget.shelfId]),
       });
-    } catch (e) {
-      print("Error removing shelf from user bookshelves: $e");
-    }
+    // ignore: empty_catches
+    } catch (e) {}
 
     try {
       final shelfRef =
           FirebaseFirestore.instance.collection('shelf').doc(shelfId);
       await shelfRef.delete();
-    } catch (e) {
-      print("Error removing shelf: $e");
-    }
+    // ignore: empty_catches
+    } catch (e) {}
   }
 
   void _showRemoveShelfDialog() {
@@ -395,9 +389,8 @@ class _ShelfState extends State<Shelf> {
                   'visibility': newVisibility,
                 });
                 Navigator.of(context).pop();
-              } catch (e) {
-                print("Error updating visibility: $e");
-              }
+              // ignore: empty_catches
+              } catch (e) {}
             },
           ),
         );
