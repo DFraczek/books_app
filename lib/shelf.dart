@@ -29,6 +29,10 @@ class _ShelfState extends State<Shelf> {
   }
 
   Future<void> _loadBooks() async {
+    setState(() {
+      _isLoading = true;
+    });
+
     try {
       final shelfDoc = await _getShelfDocument(widget.shelfId);
 
@@ -49,6 +53,8 @@ class _ShelfState extends State<Shelf> {
 
         setState(() {
           _books = bookDetails;
+          _shelfName = shelfDoc['name'];
+          _numberOfBooks = books.length;
           _isLoading = false;
         });
       } else {
@@ -73,9 +79,7 @@ class _ShelfState extends State<Shelf> {
       });
 
       // Update state to remove book from the list
-      setState(() {
-        _books.removeWhere((book) => book['id'] == bookId);
-      });
+      await _loadBooks();
     // ignore: empty_catches
     } catch (e) {}
   }
