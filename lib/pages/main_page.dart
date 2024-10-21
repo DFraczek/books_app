@@ -1,10 +1,10 @@
 
 import 'package:flutter/material.dart';
-import 'widgets/reccomendations.dart';
-import 'widgets/bottomNavBar.dart';
-import 'widgets/background_ovals.dart';
-import 'widgets/search_bar.dart';
-import 'library.dart';
+import '../widgets/reccomendations.dart';
+import '../widgets/bottomNavBar.dart';
+import '../widgets/background_ovals.dart';
+import '../widgets/search_bar.dart';
+import '../library.dart';
 import 'profile.dart';
 
 class MainPage extends StatefulWidget {
@@ -20,10 +20,10 @@ class _MainPageState extends State<MainPage> {
   int _selectedIndex = 0;
 
   final List<Widget> _pages = [
-    Recommendations(),
-    Library(),
+    const Recommendations(),
+    const Library(),
     const Center(child: Text('Stats Page')),
-    Profile(),
+    const Profile(),
   ];
 
   void _onItemTapped(int index) {

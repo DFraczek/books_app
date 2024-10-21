@@ -13,8 +13,8 @@ class BackgroundOvals extends StatelessWidget {
           child: Container(
             width: 459,
             height: 457,
-            decoration: ShapeDecoration(
-              color: const Color(0xFF528BB9),
+            decoration: const ShapeDecoration(
+              color: Color(0xFF528BB9),
               shape: OvalBorder(),
             ),
           ),
@@ -25,8 +25,8 @@ class BackgroundOvals extends StatelessWidget {
           child: Container(
             width: 712,
             height: 566,
-            decoration: ShapeDecoration(
-              color: const Color(0xFF3C729E),
+            decoration: const ShapeDecoration(
+              color: Color(0xFF3C729E),
               shape: OvalBorder(),
             ),
           ),

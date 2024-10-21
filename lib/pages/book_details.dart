@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'widgets/background_ovals.dart';
+import '../widgets/background_ovals.dart';
 import 'package:intl/intl.dart';
 import 'add_book_to_shelf_page.dart';
 

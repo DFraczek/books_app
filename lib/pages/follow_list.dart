@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'widgets/background_ovals.dart';
+import '../widgets/background_ovals.dart';
 
 class FollowList extends StatefulWidget {
   final String title;
   final String userId;
   final bool isFollowers;
 
-  const FollowList({
+  const FollowList({super.key, 
     required this.title,
     required this.userId,
     required this.isFollowers,

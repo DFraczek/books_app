@@ -2,6 +2,8 @@
 import 'package:flutter/material.dart';
 
 class Recommendations extends StatelessWidget {
+  const Recommendations({super.key});
+
   @override
   Widget build(BuildContext context) {
     final double screenWidth = MediaQuery.of(context).size.width;
@@ -10,7 +12,7 @@ class Recommendations extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Container(
+            SizedBox(
               width: screenWidth,
               height: 60,
               child: Align(
@@ -23,8 +25,8 @@ class Recommendations extends StatelessWidget {
                       height: 1,
                       color: Colors.white,
                     ),
-                    SizedBox(width: 10),
-                    Text(
+                    const SizedBox(width: 10),
+                    const Text(
                       'Polecamy',
                       style: TextStyle(
                         color: Colors.white,
@@ -34,7 +36,7 @@ class Recommendations extends StatelessWidget {
                         height: 0,
                       ),
                     ),
-                    SizedBox(width: 10),
+                    const SizedBox(width: 10),
                     Container(
                       width: (screenWidth - 230) / 2,
                       height: 1,
@@ -44,9 +46,9 @@ class Recommendations extends StatelessWidget {
                 ),
               ),
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             // Book List
-            Container(
+            SizedBox(
               width: screenWidth,
               height: 160,
               child: Align(
@@ -58,7 +60,7 @@ class Recommendations extends StatelessWidget {
                     Container(
                       width: 90,
                       height: 130,
-                      decoration: BoxDecoration(
+                      decoration: const BoxDecoration(
                         color: Color(0xFFD9D9D9),
                         boxShadow: [
                           BoxShadow(
@@ -70,12 +72,12 @@ class Recommendations extends StatelessWidget {
                         ],
                       ),
                     ),
-                    SizedBox(width: 10),
+                    const SizedBox(width: 10),
                     // Middle book
                     Container(
                       width: 130,
                       height: 200,
-                      decoration: BoxDecoration(
+                      decoration: const BoxDecoration(
                         color: Color(0xFFD9D9D9),
                         boxShadow: [
                           BoxShadow(
@@ -87,12 +89,12 @@ class Recommendations extends StatelessWidget {
                         ],
                       ),
                     ),
-                    SizedBox(width: 10),
+                    const SizedBox(width: 10),
                     // Right book
                     Container(
                       width: 90,
                       height: 130,
-                      decoration: BoxDecoration(
+                      decoration: const BoxDecoration(
                         color: Color(0xFFD9D9D9),
                         boxShadow: [
                           BoxShadow(
@@ -108,8 +110,8 @@ class Recommendations extends StatelessWidget {
                 ),
               ),
             ),
-            SizedBox(height: 30),
-            SizedBox(
+            const SizedBox(height: 30),
+            const SizedBox(
               height: 10,
               child: Center(
                 child: Text(
@@ -125,8 +127,8 @@ class Recommendations extends StatelessWidget {
                 ),
               ),
             ),
-            SizedBox(height: 5),
-            SizedBox(
+            const SizedBox(height: 5),
+            const SizedBox(
               height: 15,
               child: Center(
                 child: Text(

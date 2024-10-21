@@ -7,6 +7,8 @@ import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'icon_map.dart';
 
 class Library extends StatefulWidget {
+  const Library({super.key});
+
   @override
   _LibraryState createState() => _LibraryState();
 }
@@ -23,7 +25,7 @@ class _LibraryState extends State<Library> {
 
   Future<void> _loadShelves() async {
     try {
-      final storage = FlutterSecureStorage();
+      final storage = const FlutterSecureStorage();
       final userId = await storage.read(key: 'user_id');
 
       if (userId == null) {
@@ -51,10 +53,10 @@ class _LibraryState extends State<Library> {
 
       final sortedShelves = shelvesQuery.docs
           .where((shelf) => predefinedShelves
-              .contains((shelf.data() as Map<String, dynamic>)['name']))
+              .contains((shelf.data())['name']))
           .toList()
         ..addAll(shelvesQuery.docs.where((shelf) => !predefinedShelves
-            .contains((shelf.data() as Map<String, dynamic>)['name'])));
+            .contains((shelf.data())['name'])));
 
       setState(() {
         _shelves = sortedShelves;
@@ -75,13 +77,13 @@ class _LibraryState extends State<Library> {
         String newShelfName = '';
         String errorMessage = '';
         String selectedIconId = 'BNY3UlRkOfWOKvjLgunJ'; // Default icon ID
-        Color selectedColor = Color(0xFF3C729E); // Default color
+        Color selectedColor = const Color(0xFF3C729E); // Default color
 
         return StatefulBuilder(
           builder: (context, setState) {
             return AlertDialog(
               backgroundColor: const Color(0xFFF9F1E5),
-              title: Text(
+              title: const Text(
                 'Dodaj nową półkę',
                 style: TextStyle(
                   fontSize: 20,
@@ -108,7 +110,7 @@ class _LibraryState extends State<Library> {
                           newShelfName = value;
                         },
                       ),
-                      SizedBox(height: 16),
+                      const SizedBox(height: 16),
                       // Icon selection
                       FutureBuilder<QuerySnapshot>(
                         future: FirebaseFirestore.instance
@@ -116,7 +118,7 @@ class _LibraryState extends State<Library> {
                             .get(),
                         builder: (context, snapshot) {
                           if (!snapshot.hasData) {
-                            return Center(child: CircularProgressIndicator());
+                            return const Center(child: CircularProgressIndicator());
                           }
                           final icons = snapshot.data!.docs;
                           return DropdownButton<String>(
@@ -130,7 +132,7 @@ class _LibraryState extends State<Library> {
                                 child: Row(
                                   children: [
                                     FaIcon(iconData),
-                                    SizedBox(width: 10),
+                                    const SizedBox(width: 10),
                                     Text(iconName),
                                   ],
                                 ),
@@ -141,12 +143,12 @@ class _LibraryState extends State<Library> {
                                 selectedIconId = value!;
                               });
                             },
-                            hint: Text('Wybierz ikonę'),
-                            dropdownColor: Color(0xFFF9F1E5),
+                            hint: const Text('Wybierz ikonę'),
+                            dropdownColor: const Color(0xFFF9F1E5),
                           );
                         },
                       ),
-                      SizedBox(height: 16),
+                      const SizedBox(height: 16),
                       // Color picker
                       GestureDetector(
                         onTap: () {
@@ -154,8 +156,8 @@ class _LibraryState extends State<Library> {
                             context: context,
                             builder: (context) {
                               return AlertDialog(
-                                backgroundColor: Color(0xFFF9F1E5),
-                                title: Text('Wybierz kolor'),
+                                backgroundColor: const Color(0xFFF9F1E5),
+                                title: const Text('Wybierz kolor'),
                                 content: SingleChildScrollView(
                                   child: ColorPicker(
                                     pickerColor: selectedColor,
@@ -168,7 +170,7 @@ class _LibraryState extends State<Library> {
                                 ),
                                 actions: [
                                   TextButton(
-                                    child: Text(
+                                    child: const Text(
                                       'Gotowe',
                                       style:
                                       TextStyle(color: Color(0xFF3C729E)),
@@ -186,7 +188,7 @@ class _LibraryState extends State<Library> {
                           height: 50,
                           width: double.infinity,
                           color: selectedColor,
-                          child: Center(
+                          child: const Center(
                             child: Text(
                               'Wybierz kolor półki',
                               style: TextStyle(color: Colors.white),
@@ -194,7 +196,7 @@ class _LibraryState extends State<Library> {
                           ),
                         ),
                       ),
-                      SizedBox(height: 16),
+                      const SizedBox(height: 16),
                       // Buttons
                       Row(
                         mainAxisAlignment: MainAxisAlignment.end,
@@ -216,7 +218,7 @@ class _LibraryState extends State<Library> {
                                 return;
                               }
 
-                              final storage = FlutterSecureStorage();
+                              const storage = FlutterSecureStorage();
                               final userId = await storage.read(key: 'user_id');
 
                               if (userId == null) {
@@ -241,8 +243,7 @@ class _LibraryState extends State<Library> {
                               final existingShelves = shelvesQuery.docs;
 
                               bool isDuplicate = existingShelves.any((shelf) {
-                                return (shelf.data()
-                                as Map<String, dynamic>)['name'] ==
+                                return (shelf.data())['name'] ==
                                     newShelfName;
                               });
 
@@ -282,27 +283,27 @@ class _LibraryState extends State<Library> {
                               _loadShelves(); // reload shelves
                             },
                             style: TextButton.styleFrom(
-                              backgroundColor: Color(0xFF3C729E),
+                              backgroundColor: const Color(0xFF3C729E),
                               foregroundColor: Colors.white,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(10),
                               ),
                             ),
-                            child: Text('Dodaj'),
+                            child: const Text('Dodaj'),
                           ),
-                          SizedBox(width: 10),
+                          const SizedBox(width: 10),
                           TextButton(
                             onPressed: () {
                               Navigator.of(context).pop();
                             },
                             style: TextButton.styleFrom(
-                              backgroundColor: Color(0xFF3C729E),
+                              backgroundColor: const Color(0xFF3C729E),
                               foregroundColor: Colors.white,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(10),
                               ),
                             ),
-                            child: Text('Anuluj'),
+                            child: const Text('Anuluj'),
                           ),
                         ],
                       ),
@@ -350,7 +351,7 @@ class _LibraryState extends State<Library> {
       backgroundColor: Colors.transparent,
       body: Center(
         child: _isLoading
-            ? CircularProgressIndicator()
+            ? const CircularProgressIndicator()
             : SingleChildScrollView(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
@@ -371,7 +372,7 @@ class _LibraryState extends State<Library> {
                         child: Container(
                           width: containerWidth,
                           height: 85,
-                          margin: EdgeInsets.symmetric(vertical: 10),
+                          margin: const EdgeInsets.symmetric(vertical: 10),
                           child: Stack(
                             children: [
                               Positioned(
@@ -385,7 +386,7 @@ class _LibraryState extends State<Library> {
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(10),
                                     ),
-                                    shadows: [
+                                    shadows: const [
                                       BoxShadow(
                                         color: Color(0x3F000000),
                                         blurRadius: 4,
@@ -399,7 +400,7 @@ class _LibraryState extends State<Library> {
                               Positioned(
                                 left: 32,
                                 top: 10,
-                                child: Container(
+                                child: SizedBox(
                                   width: containerWidth - 64,
                                   height: 64,
                                   child: Stack(
@@ -412,7 +413,7 @@ class _LibraryState extends State<Library> {
                                           height: 33,
                                           child: Text(
                                             shelfData['name'] ?? 'N/A',
-                                            style: TextStyle(
+                                            style: const TextStyle(
                                               color: Colors.black,
                                               fontSize: 20,
                                               fontFamily: 'Inter',
@@ -430,7 +431,7 @@ class _LibraryState extends State<Library> {
                                           height: 21,
                                           child: Text(
                                             '${(shelfData['books'] as List<dynamic>).length} książek',
-                                            style: TextStyle(
+                                            style: const TextStyle(
                                               color: Color(0xFF949494),
                                               fontSize: 10,
                                               fontFamily: 'Inter',
@@ -450,7 +451,7 @@ class _LibraryState extends State<Library> {
                                           builder: (context, snapshot) {
                                             final iconData = snapshot.data ??
                                                 FontAwesomeIcons.book;
-                                            return Container(
+                                            return SizedBox(
                                               width: 46,
                                               height: 64,
                                               child: Center(
@@ -481,11 +482,11 @@ class _LibraryState extends State<Library> {
                           ),
                         ),
                       );
-                    }).toList(),
-                    SizedBox(height: 10),
+                    }),
+                    const SizedBox(height: 10),
                     GestureDetector(
                       onTap: _showAddShelfDialog,
-                      child: Container(
+                      child: SizedBox(
                         width: containerWidth,
                         height: 85,
                         child: Stack(
@@ -501,7 +502,7 @@ class _LibraryState extends State<Library> {
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(10),
                                   ),
-                                  shadows: [
+                                  shadows: const [
                                     BoxShadow(
                                       color: Color(0x3F000000),
                                       blurRadius: 4,
@@ -515,10 +516,10 @@ class _LibraryState extends State<Library> {
                             Positioned(
                               left: 30,
                               top: 10,
-                              child: Container(
+                              child: SizedBox(
                                 width: 46,
                                 height: 64,
-                                child: Center(
+                                child: const Center(
                                   child: FaIcon(
                                     FontAwesomeIcons.plus,
                                     size: 50,
@@ -533,7 +534,7 @@ class _LibraryState extends State<Library> {
                               child: SizedBox(
                                 width: containerWidth - 136,
                                 height: 33,
-                                child: Text(
+                                child: const Text(
                                   'Dodaj nową półkę',
                                   style: TextStyle(
                                     color: Colors.black,
