@@ -9,10 +9,10 @@ class CustomSearchBar extends StatefulWidget {
   const CustomSearchBar({super.key, required this.controller});
 
   @override
-  _CustomSearchBarState createState() => _CustomSearchBarState();
+  CustomSearchBarState createState() => CustomSearchBarState();
 }
 
-class _CustomSearchBarState extends State<CustomSearchBar> {
+class CustomSearchBarState extends State<CustomSearchBar> {
   List<Map<String, String>> suggestions = []; //lista sugerowanych tytułow książek i id
 
   //szukanie ksiazek w bazie
@@ -149,7 +149,6 @@ class _CustomSearchBarState extends State<CustomSearchBar> {
                   ),
                   onTap: () {
                     // TODO: Handle "Show all results" tap
-                    print('Show all results tapped');
                   },
                 ),
               ],

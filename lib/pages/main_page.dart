@@ -1,7 +1,7 @@
 
 import 'package:flutter/material.dart';
 import '../widgets/reccomendations.dart';
-import '../widgets/bottomNavBar.dart';
+import '../widgets/bottom_nav_bar.dart';
 import '../widgets/background_ovals.dart';
 import '../widgets/search_bar.dart';
 import '../library.dart';
@@ -11,10 +11,10 @@ class MainPage extends StatefulWidget {
   const MainPage({super.key});
 
   @override
-  _MainPageState createState() => _MainPageState();
+  MainPageState createState() => MainPageState();
 }
 
-class _MainPageState extends State<MainPage> {
+class MainPageState extends State<MainPage> {
   final TextEditingController _searchBarController = TextEditingController();
   final PageController _pageController = PageController();
   int _selectedIndex = 0;

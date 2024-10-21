@@ -8,10 +8,10 @@ class Login extends StatefulWidget {
   const Login({super.key});
 
   @override
-  _LoginState createState() => _LoginState();
+  LoginState createState() => LoginState();
 }
 
-class _LoginState extends State<Login> {
+class LoginState extends State<Login> {
   bool _isErrorVisible = false;
   bool _isLoading = false;
   String _errorMessage = '';

@@ -14,8 +14,7 @@ class FollowList extends StatefulWidget {
   });
 
   @override
-  State<FollowList> createState() =>
-      _FollowListState(userId: userId, isFollowers: isFollowers);
+  State<FollowList> createState() => _FollowListState(userId: userId, isFollowers: isFollowers);
 }
 
 class _FollowListState extends State<FollowList> {

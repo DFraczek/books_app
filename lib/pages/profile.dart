@@ -14,10 +14,10 @@ class Profile extends StatefulWidget {
   const Profile({super.key});
 
   @override
-  _ProfileState createState() => _ProfileState();
+  ProfileState createState() => ProfileState();
 }
 
-class _ProfileState extends State<Profile> {
+class ProfileState extends State<Profile> {
   String? username;
   String? aboutMe;
   String? email;
@@ -130,7 +130,7 @@ class _ProfileState extends State<Profile> {
           profilePictureUrl = downloadUrl;
         });
       } catch (e) {
-        print('Error uploading image: $e');
+        Exception('Błąd podczas przesyłania zdjęcia');
       } finally {
         setState(() {
           _isLoading = false;

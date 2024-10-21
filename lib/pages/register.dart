@@ -8,10 +8,10 @@ class Register extends StatefulWidget {
   const Register({super.key});
 
   @override
-  _RegisterState createState() => _RegisterState();
+  RegisterState createState() => RegisterState();
 }
 
-class _RegisterState extends State<Register> {
+class RegisterState extends State<Register> {
   bool _isErrorVisible = false;
   bool _isSuccessVisible = false;
   bool _isLoading = false;

@@ -13,10 +13,10 @@ class Shelf extends StatefulWidget {
   const Shelf({super.key, required this.shelfId});
 
   @override
-  _ShelfState createState() => _ShelfState();
+  ShelfState createState() => ShelfState();
 }
 
-class _ShelfState extends State<Shelf> {
+class ShelfState extends State<Shelf> {
   List<Map<String, dynamic>> _books = [];
   bool _isLoading = true;
   String _shelfName = "";
@@ -58,13 +58,11 @@ class _ShelfState extends State<Shelf> {
           _isLoading = false;
         });
       } else {
-        print("Shelf does not exist");
         setState(() {
           _isLoading = false;
         });
       }
     } catch (e) {
-      print("Error loading books: $e");
       setState(() {
         _isLoading = false;
       });
@@ -74,13 +72,16 @@ class _ShelfState extends State<Shelf> {
   Future<void> _removeBookFromShelf(String bookId) async {
     try {
       // Remove book from the specified shelf in Firestore
-      await FirebaseFirestore.instance.collection('shelf').doc(widget.shelfId).update({
+      await FirebaseFirestore.instance
+          .collection('shelf')
+          .doc(widget.shelfId)
+          .update({
         'books': FieldValue.arrayRemove([bookId]),
       });
 
       // Update state to remove book from the list
       await _loadBooks();
-    // ignore: empty_catches
+      // ignore: empty_catches
     } catch (e) {}
   }
 
@@ -161,9 +162,9 @@ class _ShelfState extends State<Shelf> {
       await shelfRef.update({
         'name': newName,
       });
-
-      // ignore: empty_catches
-    } catch (e) {}
+    } catch (e) {
+      throw Exception('Failed to update shelf name');
+    }
   }
 
   Future<void> _updateShelfIcon(
@@ -343,15 +344,17 @@ class _ShelfState extends State<Shelf> {
       await userRef.update({
         'bookshelves': FieldValue.arrayRemove([widget.shelfId]),
       });
-      // ignore: empty_catches
-    } catch (e) {}
+    } catch (e) {
+      throw Exception('Failed to remove shelf from user');
+    }
 
     try {
       final shelfRef =
           FirebaseFirestore.instance.collection('shelf').doc(shelfId);
       await shelfRef.delete();
-      // ignore: empty_catches
-    } catch (e) {}
+    } catch (e) {
+      throw Exception('Failed to delete shelf');
+    }
   }
 
   void _showRemoveShelfDialog() {
@@ -426,9 +429,10 @@ class _ShelfState extends State<Shelf> {
                 await shelfRef.update({
                   'visibility': newVisibility,
                 });
-                Navigator.of(context).pop();
-                // ignore: empty_catches
-              } catch (e) {}
+                if (context.mounted) Navigator.of(context).pop();
+              } catch (e) {
+                throw Exception('Failed to update shelf visibility');
+              }
             },
           ),
         );
@@ -786,7 +790,8 @@ class _ShelfState extends State<Shelf> {
                         const SizedBox(height: 20),
                         ..._books.map((book) => BookItem(
                               book: book,
-                              onRemove: (bookId) => _removeBookFromShelf(bookId),
+                              onRemove: (bookId) =>
+                                  _removeBookFromShelf(bookId),
                             )),
                         const SizedBox(height: 20),
                       ],
@@ -895,9 +900,12 @@ class BookItem extends StatelessWidget {
                             );
                           }).toList(),
                         ),
-                        IconButton(onPressed: (){
-                          onRemove(book['id']);
-                        } , icon: const Icon(Icons.delete), color: Colors.red),
+                        IconButton(
+                            onPressed: () {
+                              onRemove(book['id']);
+                            },
+                            icon: const Icon(Icons.delete),
+                            color: Colors.red),
                       ],
                     ),
                   ),
@@ -945,10 +953,10 @@ class ChangeVisibilityDialog extends StatefulWidget {
   });
 
   @override
-  _ChangeVisibilityDialogState createState() => _ChangeVisibilityDialogState();
+  ChangeVisibilityDialogState createState() => ChangeVisibilityDialogState();
 }
 
-class _ChangeVisibilityDialogState extends State<ChangeVisibilityDialog> {
+class ChangeVisibilityDialogState extends State<ChangeVisibilityDialog> {
   String? _selectedOption;
 
   @override
